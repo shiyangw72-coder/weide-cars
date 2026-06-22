@@ -4,7 +4,6 @@ const router = express.Router();
 module.exports = function(db, saveDb) {
 
   // Apply translations to a car object based on current language
-  // fields: brand, model, description, color
   function applyTranslations(car, lang) {
     if (!car || !car.translations || lang === 'zh') return car;
     try {
@@ -21,7 +20,7 @@ module.exports = function(db, saveDb) {
     return car;
   }
 
-  router.get('/', (req, res) => {
+  router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 12;
     const offset = (page - 1) * limit;
@@ -30,95 +29,73 @@ module.exports = function(db, saveDb) {
     const category = req.query.category || '';
 
     let whereClause = "WHERE c.status = 'active'";
-    let params = [];
+    let paramIdx = 1;
+    const params = [];
 
     if (search) {
-      whereClause += " AND (c.brand LIKE ? OR c.model LIKE ? OR c.description LIKE ?)";
+      whereClause += ` AND (c.brand LIKE $${paramIdx} OR c.model LIKE $${paramIdx+1} OR c.description LIKE $${paramIdx+2})`;
       params.push(`%${search}%`, `%${search}%`, `%${search}%`);
+      paramIdx += 3;
     }
     if (brand) {
-      whereClause += " AND c.brand = ?";
+      whereClause += ` AND c.brand = $${paramIdx}`;
       params.push(brand);
+      paramIdx++;
     }
     if (category) {
-      whereClause += " AND c.category = ?";
+      whereClause += ` AND c.category = $${paramIdx}`;
       params.push(category);
+      paramIdx++;
     }
 
     try {
-      const countResult = db.exec(
+      const countResult = await db.queryOne(
         `SELECT COUNT(*) as total FROM cars c ${whereClause}`,
-        params.length ? params : undefined
+        params
       );
-      const total = countResult[0].values[0][0];
+      const total = parseInt(countResult.total);
 
-      params.push(limit, offset);
-      const carsResult = db.exec(
+      const cars = await db.query(
         `SELECT c.*, u.display_name as creator_name 
          FROM cars c 
          LEFT JOIN users u ON c.created_by = u.id 
          ${whereClause} 
          ORDER BY c.created_at DESC 
-         LIMIT ? OFFSET ?`,
-        params
+         LIMIT $${paramIdx} OFFSET $${paramIdx+1}`,
+        [...params, limit, offset]
       );
-
-      const cars = [];
-      if (carsResult.length && carsResult[0].values.length) {
-        const cols = carsResult[0].columns;
-        for (const val of carsResult[0].values) {
-          const car = {};
-          cols.forEach((col, i) => car[col] = val[i]);
-          cars.push(car);
-        }
-      }
 
       for (const car of cars) {
-        const mediaResult = db.exec(
-          "SELECT file_path, file_type FROM car_media WHERE car_id = ? AND is_cover = 1 LIMIT 1",
+        const coverMedia = await db.queryOne(
+          "SELECT file_path FROM car_media WHERE car_id = $1 AND is_cover = 1 LIMIT 1",
           [car.id]
         );
-        if (mediaResult.length && mediaResult[0].values.length) {
-          car.cover_image = mediaResult[0].values[0][0];
+        if (coverMedia) {
+          car.cover_image = coverMedia.file_path;
         } else {
-          const imgResult = db.exec(
-            "SELECT file_path FROM car_media WHERE car_id = ? AND file_type = 'image' LIMIT 1",
+          const imgMedia = await db.queryOne(
+            "SELECT file_path FROM car_media WHERE car_id = $1 AND file_type = 'image' LIMIT 1",
             [car.id]
           );
-          car.cover_image = imgResult.length && imgResult[0].values.length ? imgResult[0].values[0][0] : null;
+          car.cover_image = imgMedia ? imgMedia.file_path : null;
         }
       }
 
-      const brandsResult = db.exec(
+      const brands = await db.query(
         "SELECT DISTINCT brand FROM cars WHERE status = 'active' AND brand != '' ORDER BY brand"
       );
-      const brands = [];
-      if (brandsResult.length && brandsResult[0].values.length) {
-        for (const val of brandsResult[0].values) {
-          brands.push(val[0]);
-        }
-      }
-
-      const categoriesResult = db.exec(
+      const categories = await db.query(
         "SELECT DISTINCT category FROM cars WHERE status = 'active' AND category != '' ORDER BY category"
       );
-      const categories = [];
-      if (categoriesResult.length && categoriesResult[0].values.length) {
-        for (const val of categoriesResult[0].values) {
-          categories.push(val[0]);
-        }
-      }
 
       const totalPages = Math.ceil(total / limit);
 
       // Load global site contact settings
-      let siteContacts = {};
+      let siteContacts = { contact_wechat: '', contact_whatsapp: '', contact_email: '' };
       try {
-        const settingsResult = db.exec("SELECT contact_wechat, contact_whatsapp, contact_email FROM site_settings WHERE id = 1");
-        if (settingsResult.length && settingsResult[0].values.length) {
-          const cols = settingsResult[0].columns;
-          const vals = settingsResult[0].values[0];
-          cols.forEach((col, i) => siteContacts[col] = vals[i] || '');
+        const settings = await db.queryOne("SELECT contact_wechat, contact_whatsapp, contact_email FROM site_settings WHERE id = 1");
+        if (settings) {
+          siteContacts = settings;
         }
       } catch (e) {}
 
@@ -131,13 +108,13 @@ module.exports = function(db, saveDb) {
       res.render('index', {
         title: req.t('hero.title'),
         cars,
-        brands,
+        brands: brands.map(b => b.brand),
         currentPage: page,
         totalPages,
         search,
         selectedBrand: brand,
         selectedCategory: category,
-        categories,
+        categories: categories.map(c => c.category),
         user: req.session.user || null,
         lang: req.lang,
         t: req.t,
@@ -161,19 +138,19 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  router.get('/car/:id', (req, res) => {
+  router.get('/car/:id', async (req, res) => {
     const id = parseInt(req.params.id);
 
     try {
-      const result = db.exec(
+      const car = await db.queryOne(
         `SELECT c.*, u.display_name as creator_name 
          FROM cars c 
          LEFT JOIN users u ON c.created_by = u.id 
-         WHERE c.id = ?`,
+         WHERE c.id = $1`,
         [id]
       );
 
-      if (!result.length || !result[0].values.length) {
+      if (!car) {
         return res.status(404).render('error', {
           title: req.t('error.404'),
           message: '该车辆信息不存在',
@@ -186,12 +163,6 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const cols = result[0].columns;
-      const vals = result[0].values[0];
-      const car = {};
-      cols.forEach((col, i) => car[col] = vals[i]);
-
-      // Only active cars are visible to the public
       if (car.status !== 'active') {
         return res.status(404).render('error', {
           title: req.t('error.404'),
@@ -205,35 +176,20 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const mediaResult = db.exec(
-        "SELECT * FROM car_media WHERE car_id = ? ORDER BY sort_order ASC, id ASC",
+      const media = await db.query(
+        "SELECT * FROM car_media WHERE car_id = $1 ORDER BY sort_order ASC, id ASC",
         [id]
       );
-      const media = [];
-      if (mediaResult.length && mediaResult[0].values.length) {
-        const mCols = mediaResult[0].columns;
-        for (const val of mediaResult[0].values) {
-          const item = {};
-          mCols.forEach((col, i) => item[col] = val[i]);
-          media.push(item);
-        }
-      }
 
-      // Load global site contacts (fallback if car has no contacts)
-      let siteContacts = {};
+      // Load global site contacts
+      let siteContacts = { contact_wechat: '', contact_whatsapp: '', contact_email: '' };
       try {
-        const settingsResult = db.exec("SELECT contact_wechat, contact_whatsapp, contact_email FROM site_settings WHERE id = 1");
-        if (settingsResult.length && settingsResult[0].values.length) {
-          const cols = settingsResult[0].columns;
-          const vals = settingsResult[0].values[0];
-          cols.forEach((col, i) => siteContacts[col] = vals[i] || '');
-        }
+        const settings = await db.queryOne("SELECT contact_wechat, contact_whatsapp, contact_email FROM site_settings WHERE id = 1");
+        if (settings) siteContacts = settings;
       } catch (e) {}
 
-      // Apply translations based on selected language
       applyTranslations(car, req.lang);
 
-      // If car has no contact info, show global contacts
       if (!car.contact_wechat && !car.contact_whatsapp && !car.contact_email) {
         car.contact_wechat = siteContacts.contact_wechat || '';
         car.contact_whatsapp = siteContacts.contact_whatsapp || '';

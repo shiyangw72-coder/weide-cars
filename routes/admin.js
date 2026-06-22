@@ -12,7 +12,6 @@ async function translateText(text, fromLang, toLang) {
   if (!text || !text.trim()) return '';
   const trimmed = text.trim().substring(0, 1000);
 
-  // DeepL language code mapping
   const targetLang = toLang.toUpperCase();
   const sourceLang = fromLang.toUpperCase() === 'ZH' ? 'ZH' : fromLang.toUpperCase();
 
@@ -51,7 +50,6 @@ async function translateText(text, fromLang, toLang) {
     }
   }
 
-  // Fallback to MyMemory free API
   return new Promise((resolve) => {
     const langpair = `${fromLang}|${toLang}`;
     const qs = new URLSearchParams({ q: trimmed.substring(0, 500), langpair });
@@ -115,12 +113,10 @@ const reviewUpload = upload.fields([
   { name: 'new_video', maxCount: 1 }
 ]);
 
-// Wrap upload middleware with error handling
 function wrapUpload(uploadMiddleware, formType) {
   return (req, res, next) => {
     uploadMiddleware(req, res, (err) => {
       if (err) {
-        // 把错误信息存到 session，重定向回表单页
         let msg = '文件上传错误：';
         if (err instanceof multer.MulterError) {
           if (err.code === 'LIMIT_FILE_SIZE') msg = '文件过大，单个文件不能超过 100MB';
@@ -185,21 +181,24 @@ function validateMediaCounts(images, videos, existingImages, existingVideos, isC
   return null;
 }
 
-function saveMediaFiles(db, carId, files, existingImageCount, existingVideoCount) {
+async function saveMediaFiles(db, carId, files, existingImageCount, existingVideoCount) {
   const { images, videos } = files;
-  const coverSet = (db.exec(
-    "SELECT COUNT(*) as c FROM car_media WHERE car_id = ? AND is_cover = 1",
-    [carId]
-  )[0].values[0][0] > 0);
-  let sortStart = 0;
-  const maxSort = db.exec(
-    "SELECT COALESCE(MAX(sort_order), -1) as max FROM car_media WHERE car_id = ?",
+  const coverCheck = await db.queryOne(
+    "SELECT COUNT(*) as c FROM car_media WHERE car_id = $1 AND is_cover = 1",
     [carId]
   );
-  sortStart = maxSort[0].values[0][0] + 1;
+  const coverSet = parseInt(coverCheck.c) > 0;
+
+  const maxSort = await db.queryOne(
+    "SELECT COALESCE(MAX(sort_order), -1) as max_sort FROM car_media WHERE car_id = $1",
+    [carId]
+  );
+  let sortStart = maxSort.max_sort + 1;
 
   let hasCover = coverSet;
-  [...images, ...videos].forEach((file, i) => {
+  const allFiles = [...images, ...videos];
+  for (let i = 0; i < allFiles.length; i++) {
+    const file = allFiles[i];
     const isImage = file.mimetype.startsWith('image/');
     const relativePath = '/uploads/' + file.filename;
     let isCover = 0;
@@ -207,21 +206,19 @@ function saveMediaFiles(db, carId, files, existingImageCount, existingVideoCount
       isCover = 1;
       hasCover = true;
     }
-    db.run(
-      "INSERT INTO car_media (car_id, file_path, file_type, sort_order, is_cover) VALUES (?, ?, ?, ?, ?)",
+    await db.execute(
+      "INSERT INTO car_media (car_id, file_path, file_type, sort_order, is_cover) VALUES ($1, $2, $3, $4, $5)",
       [carId, relativePath, isImage ? 'image' : 'video', sortStart + i, isCover]
     );
-  });
+  }
 }
 
-function deleteCarMediaFiles(db, carId) {
-  const mediaResult = db.exec("SELECT file_path FROM car_media WHERE car_id = ?", [carId]);
-  if (mediaResult.length && mediaResult[0].values.length) {
-    for (const val of mediaResult[0].values) {
-      const filePath = path.join(__dirname, '..', 'public', val[0]);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
+async function deleteCarMediaFiles(db, carId) {
+  const mediaRows = await db.query("SELECT file_path FROM car_media WHERE car_id = $1", [carId]);
+  for (const row of mediaRows) {
+    const filePath = path.join(__dirname, '..', 'public', row.file_path);
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
     }
   }
 }
@@ -244,26 +241,29 @@ function buildTranslations(body) {
 module.exports = function(db, saveDb) {
 
   // Admin dashboard
-  router.get('/', requireAuth, (req, res) => {
+  router.get('/', requireAuth, async (req, res) => {
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
 
     try {
-      let totalCars, activeCars, totalUsers;
+      let totalCars, activeCars, totalUsers, pendingCars = 0;
 
       if (isAdmin) {
-        totalCars = db.exec("SELECT COUNT(*) as c FROM cars")[0].values[0][0];
-        activeCars = db.exec("SELECT COUNT(*) as c FROM cars WHERE status = 'active'")[0].values[0][0];
-        totalUsers = db.exec("SELECT COUNT(*) as c FROM users")[0].values[0][0];
+        const tc = await db.queryOne("SELECT COUNT(*) as c FROM cars");
+        totalCars = parseInt(tc.c);
+        const ac = await db.queryOne("SELECT COUNT(*) as c FROM cars WHERE status = 'active'");
+        activeCars = parseInt(ac.c);
+        const tu = await db.queryOne("SELECT COUNT(*) as c FROM users");
+        totalUsers = parseInt(tu.c);
+        const pc = await db.queryOne("SELECT COUNT(*) as c FROM cars WHERE status = 'pending'");
+        pendingCars = parseInt(pc.c);
       } else {
-        totalCars = db.exec("SELECT COUNT(*) as c FROM cars WHERE created_by = ?", [userId])[0].values[0][0];
-        activeCars = db.exec("SELECT COUNT(*) as c FROM cars WHERE created_by = ? AND status = 'active'", [userId])[0].values[0][0];
+        const tc = await db.queryOne("SELECT COUNT(*) as c FROM cars WHERE created_by = $1", [userId]);
+        totalCars = parseInt(tc.c);
+        const ac = await db.queryOne("SELECT COUNT(*) as c FROM cars WHERE created_by = $1 AND status = 'active'", [userId]);
+        activeCars = parseInt(ac.c);
         totalUsers = 0;
       }
-
-      const pendingCars = isAdmin
-        ? db.exec("SELECT COUNT(*) as c FROM cars WHERE status = 'pending'")[0].values[0][0]
-        : 0;
 
       res.render('admin/dashboard', {
         title: req.t('nav.admin'),
@@ -288,38 +288,28 @@ module.exports = function(db, saveDb) {
   });
 
   // Cars list
-  router.get('/cars', requireAuth, (req, res) => {
+  router.get('/cars', requireAuth, async (req, res) => {
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
 
     try {
-      let carsResult;
+      let cars;
       if (isAdmin) {
-        carsResult = db.exec(
+        cars = await db.query(
           `SELECT c.*, u.display_name as creator_name 
            FROM cars c 
            LEFT JOIN users u ON c.created_by = u.id 
            ORDER BY c.created_at DESC`
         );
       } else {
-        carsResult = db.exec(
+        cars = await db.query(
           `SELECT c.*, u.display_name as creator_name 
            FROM cars c 
            LEFT JOIN users u ON c.created_by = u.id 
-           WHERE c.created_by = ?
+           WHERE c.created_by = $1
            ORDER BY c.created_at DESC`,
           [userId]
         );
-      }
-
-      const cars = [];
-      if (carsResult.length && carsResult[0].values.length) {
-        const cols = carsResult[0].columns;
-        for (const val of carsResult[0].values) {
-          const car = {};
-          cols.forEach((col, i) => car[col] = val[i]);
-          cars.push(car);
-        }
       }
 
       res.render('admin/cars', {
@@ -356,7 +346,7 @@ module.exports = function(db, saveDb) {
   });
 
   // Add car handler
-  router.post('/cars/create', requireAuth, carUploadSafe, (req, res) => {
+  router.post('/cars/create', requireAuth, carUploadSafe, async (req, res) => {
     const { brand, model, year, mileage, price, cost_price, color, fuel_type, transmission, displacement, description, category } = req.body;
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
@@ -381,9 +371,10 @@ module.exports = function(db, saveDb) {
       const finalStatus = isAdmin ? 'active' : 'pending';
       const translations = buildTranslations(req.body);
 
-      db.run(
+      const result = await db.execute(
         `INSERT INTO cars (brand, model, year, mileage, price, cost_price, color, fuel_type, transmission, displacement, description, category, status, created_by, contact_wechat, contact_whatsapp, contact_email, translations)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+         RETURNING id`,
         [brand, model, parseInt(year), parseInt(mileage),
          finalPrice, finalCostPrice, color, fuel_type, transmission,
          displacement, description, category, finalStatus, userId,
@@ -393,10 +384,9 @@ module.exports = function(db, saveDb) {
          JSON.stringify(translations)]
       );
 
-      const carId = db.exec("SELECT last_insert_rowid() as id")[0].values[0][0];
+      const carId = result.rows[0].id;
 
-      saveMediaFiles(db, carId, files, 0, 0);
-      saveDb();
+      await saveMediaFiles(db, carId, files, 0, 0);
       res.redirect('/admin/cars');
     } catch (err) {
       console.error('Create car error:', err);
@@ -412,7 +402,7 @@ module.exports = function(db, saveDb) {
   });
 
   // Edit car form
-  router.get('/cars/edit/:id', requireAuth, (req, res) => {
+  router.get('/cars/edit/:id', requireAuth, async (req, res) => {
     const id = parseInt(req.params.id);
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
@@ -420,8 +410,9 @@ module.exports = function(db, saveDb) {
     try {
       const error = req.session.uploadError || null;
       req.session.uploadError = null;
-      const result = db.exec("SELECT * FROM cars WHERE id = ?", [id]);
-      if (!result.length || !result[0].values.length) {
+
+      const car = await db.queryOne("SELECT * FROM cars WHERE id = $1", [id]);
+      if (!car) {
         return res.status(404).render('error', {
           title: req.t('error.404'),
           message: '车辆不存在',
@@ -430,11 +421,6 @@ module.exports = function(db, saveDb) {
           t: req.t
         });
       }
-
-      const cols = result[0].columns;
-      const vals = result[0].values[0];
-      const car = {};
-      cols.forEach((col, i) => car[col] = vals[i]);
 
       if (!isAdmin && car.created_by !== userId) {
         return res.status(403).render('error', {
@@ -446,16 +432,7 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const mediaResult = db.exec("SELECT * FROM car_media WHERE car_id = ? ORDER BY sort_order", [id]);
-      const media = [];
-      if (mediaResult.length && mediaResult[0].values.length) {
-        const mCols = mediaResult[0].columns;
-        for (const val of mediaResult[0].values) {
-          const item = {};
-          mCols.forEach((col, i) => item[col] = val[i]);
-          media.push(item);
-        }
-      }
+      const media = await db.query("SELECT * FROM car_media WHERE car_id = $1 ORDER BY sort_order", [id]);
       car.media = media;
 
       const translationResults = req.session.translationResults || null;
@@ -483,7 +460,7 @@ module.exports = function(db, saveDb) {
   });
 
   // Edit car handler
-  router.post('/cars/edit/:id', requireAuth, carEditUploadSafe, (req, res) => {
+  router.post('/cars/edit/:id', requireAuth, carEditUploadSafe, async (req, res) => {
     const id = parseInt(req.params.id);
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
@@ -502,8 +479,8 @@ module.exports = function(db, saveDb) {
     }
 
     try {
-      const checkResult = db.exec("SELECT * FROM cars WHERE id = ?", [id]);
-      if (!checkResult.length || !checkResult[0].values.length) {
+      const existingCar = await db.queryOne("SELECT * FROM cars WHERE id = $1", [id]);
+      if (!existingCar) {
         return res.status(404).render('error', {
           title: req.t('error.404'),
           message: '车辆不存在',
@@ -512,11 +489,6 @@ module.exports = function(db, saveDb) {
           t: req.t
         });
       }
-
-      const cols = checkResult[0].columns;
-      const vals = checkResult[0].values[0];
-      const existingCar = {};
-      cols.forEach((col, i) => existingCar[col] = vals[i]);
 
       if (!isAdmin && existingCar.created_by !== userId) {
         return res.status(403).render('error', {
@@ -528,29 +500,18 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const mediaCount = db.exec("SELECT file_type, COUNT(*) as c FROM car_media WHERE car_id = ? GROUP BY file_type", [id]);
+      const mediaCounts = await db.query("SELECT file_type, COUNT(*) as c FROM car_media WHERE car_id = $1 GROUP BY file_type", [id]);
       let existingImages = 0;
       let existingVideos = 0;
-      if (mediaCount.length && mediaCount[0].values.length) {
-        for (const row of mediaCount[0].values) {
-          if (row[0] === 'image') existingImages = row[1];
-          if (row[0] === 'video') existingVideos = row[1];
-        }
+      for (const row of mediaCounts) {
+        if (row.file_type === 'image') existingImages = parseInt(row.c);
+        if (row.file_type === 'video') existingVideos = parseInt(row.c);
       }
 
       const newFiles = collectFiles(req, 'new_images', 'new_video');
       const mediaError = validateMediaCounts(newFiles.images, newFiles.videos, existingImages, existingVideos, false, req);
       if (mediaError) {
-        const mediaResult = db.exec("SELECT * FROM car_media WHERE car_id = ? ORDER BY sort_order", [id]);
-        const media = [];
-        if (mediaResult.length && mediaResult[0].values.length) {
-          const mCols = mediaResult[0].columns;
-          for (const val of mediaResult[0].values) {
-            const item = {};
-            mCols.forEach((col, i) => item[col] = val[i]);
-            media.push(item);
-          }
-        }
+        const media = await db.query("SELECT * FROM car_media WHERE car_id = $1 ORDER BY sort_order", [id]);
         existingCar.media = media;
         return res.render('admin/car-form', {
           title: '编辑车辆',
@@ -571,20 +532,19 @@ module.exports = function(db, saveDb) {
       const contactWhatsapp = isAdmin ? (req.body.contact_whatsapp || '') : (existingCar.contact_whatsapp || '');
       const contactEmail = isAdmin ? (req.body.contact_email || '') : (existingCar.contact_email || '');
 
-      db.run(
-        `UPDATE cars SET brand=?, model=?, year=?, mileage=?, price=?, cost_price=?, color=?, fuel_type=?, 
-         transmission=?, displacement=?, description=?, category=?, status=?, updated_at=CURRENT_TIMESTAMP,
-         contact_wechat=?, contact_whatsapp=?, contact_email=?, translations=?
-         WHERE id=?`,
+      await db.execute(
+        `UPDATE cars SET brand=$1, model=$2, year=$3, mileage=$4, price=$5, cost_price=$6, color=$7, fuel_type=$8, 
+         transmission=$9, displacement=$10, description=$11, category=$12, status=$13, updated_at=CURRENT_TIMESTAMP,
+         contact_wechat=$14, contact_whatsapp=$15, contact_email=$16, translations=$17
+         WHERE id=$18`,
         [brand, model, parseInt(year), parseInt(mileage),
          finalPrice, finalCostPrice, color, fuel_type, transmission,
          displacement, description, category, carStatus,
          contactWechat, contactWhatsapp, contactEmail, JSON.stringify(translations), id]
       );
 
-      saveMediaFiles(db, id, newFiles, existingImages, existingVideos);
+      await saveMediaFiles(db, id, newFiles, existingImages, existingVideos);
 
-      saveDb();
       res.redirect('/admin/cars');
     } catch (err) {
       console.error('Update car error:', err);
@@ -599,25 +559,15 @@ module.exports = function(db, saveDb) {
   });
 
   // Review routes (admin only)
-  router.get('/review', requireAdmin, (req, res) => {
+  router.get('/review', requireAdmin, async (req, res) => {
     try {
-      const result = db.exec(
+      const cars = await db.query(
         `SELECT c.*, u.display_name as creator_name 
          FROM cars c 
          LEFT JOIN users u ON c.created_by = u.id 
          WHERE c.status = 'pending'
          ORDER BY c.created_at DESC`
       );
-
-      const cars = [];
-      if (result.length && result[0].values.length) {
-        const cols = result[0].columns;
-        for (const val of result[0].values) {
-          const car = {};
-          cols.forEach((col, i) => car[col] = val[i]);
-          cars.push(car);
-        }
-      }
 
       res.render('admin/review-list', {
         title: '审核车辆',
@@ -638,12 +588,12 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  router.get('/review/:id', requireAdmin, (req, res) => {
+  router.get('/review/:id', requireAdmin, async (req, res) => {
     const id = parseInt(req.params.id);
 
     try {
-      const result = db.exec("SELECT * FROM cars WHERE id = ? AND status = 'pending'", [id]);
-      if (!result.length || !result[0].values.length) {
+      const car = await db.queryOne("SELECT * FROM cars WHERE id = $1 AND status = 'pending'", [id]);
+      if (!car) {
         return res.status(404).render('error', {
           title: req.t('error.404'),
           message: '车辆不存在或已审核',
@@ -653,27 +603,11 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const cols = result[0].columns;
-      const vals = result[0].values[0];
-      const car = {};
-      cols.forEach((col, i) => car[col] = vals[i]);
-
-      const mediaResult = db.exec("SELECT * FROM car_media WHERE car_id = ? ORDER BY sort_order", [id]);
-      const media = [];
-      if (mediaResult.length && mediaResult[0].values.length) {
-        const mCols = mediaResult[0].columns;
-        for (const val of mediaResult[0].values) {
-          const item = {};
-          mCols.forEach((col, i) => item[col] = val[i]);
-          media.push(item);
-        }
-      }
+      const media = await db.query("SELECT * FROM car_media WHERE car_id = $1 ORDER BY sort_order", [id]);
       car.media = media;
 
-      const creatorResult = db.exec("SELECT display_name FROM users WHERE id = ?", [car.created_by]);
-      car.creator_name = creatorResult.length && creatorResult[0].values.length
-        ? creatorResult[0].values[0][0]
-        : 'Unknown';
+      const creator = await db.queryOne("SELECT display_name FROM users WHERE id = $1", [car.created_by]);
+      car.creator_name = creator ? creator.display_name : 'Unknown';
 
       res.render('admin/review-form', {
         title: '审核车辆',
@@ -695,13 +629,13 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  router.post('/review/:id', requireAdmin, reviewUploadSafe, (req, res) => {
+  router.post('/review/:id', requireAdmin, reviewUploadSafe, async (req, res) => {
     const id = parseInt(req.params.id);
     const { price, action } = req.body;
 
     try {
-      const checkResult = db.exec("SELECT * FROM cars WHERE id = ? AND status = 'pending'", [id]);
-      if (!checkResult.length || !checkResult[0].values.length) {
+      const checkCar = await db.queryOne("SELECT * FROM cars WHERE id = $1 AND status = 'pending'", [id]);
+      if (!checkCar) {
         return res.status(404).render('error', {
           title: req.t('error.404'),
           message: '车辆不存在或已审核',
@@ -712,9 +646,8 @@ module.exports = function(db, saveDb) {
       }
 
       if (action === 'reject') {
-        deleteCarMediaFiles(db, id);
-        db.run("DELETE FROM cars WHERE id = ?", [id]);
-        saveDb();
+        await deleteCarMediaFiles(db, id);
+        await db.execute("DELETE FROM cars WHERE id = $1", [id]);
         return res.redirect('/admin/review');
       }
 
@@ -723,27 +656,24 @@ module.exports = function(db, saveDb) {
       }
 
       const finalPrice = parseFloat(price);
-      db.run(
-        "UPDATE cars SET price = ?, status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+      await db.execute(
+        "UPDATE cars SET price = $1, status = 'active', updated_at = CURRENT_TIMESTAMP WHERE id = $2",
         [finalPrice, id]
       );
 
       const newFiles = collectFiles(req, 'new_images', 'new_video');
-      const mediaCount = db.exec("SELECT file_type, COUNT(*) as c FROM car_media WHERE car_id = ? GROUP BY file_type", [id]);
+      const mediaCounts = await db.query("SELECT file_type, COUNT(*) as c FROM car_media WHERE car_id = $1 GROUP BY file_type", [id]);
       let existingImages = 0;
       let existingVideos = 0;
-      if (mediaCount.length && mediaCount[0].values.length) {
-        for (const row of mediaCount[0].values) {
-          if (row[0] === 'image') existingImages = row[1];
-          if (row[0] === 'video') existingVideos = row[1];
-        }
+      for (const row of mediaCounts) {
+        if (row.file_type === 'image') existingImages = parseInt(row.c);
+        if (row.file_type === 'video') existingVideos = parseInt(row.c);
       }
       const mediaError = validateMediaCounts(newFiles.images, newFiles.videos, existingImages, existingVideos, false, req);
       if (!mediaError) {
-        saveMediaFiles(db, id, newFiles, existingImages, existingVideos);
+        await saveMediaFiles(db, id, newFiles, existingImages, existingVideos);
       }
 
-      saveDb();
       res.redirect('/admin/review');
     } catch (err) {
       console.error('Review error:', err);
@@ -758,27 +688,22 @@ module.exports = function(db, saveDb) {
   });
 
   // Delete media
-  router.post('/cars/media/delete/:mediaId', requireAuth, (req, res) => {
+  router.post('/cars/media/delete/:mediaId', requireAuth, async (req, res) => {
     const mediaId = parseInt(req.params.mediaId);
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
 
     try {
-      const mediaResult = db.exec(
+      const mediaInfo = await db.queryOne(
         `SELECT cm.*, c.created_by FROM car_media cm 
          JOIN cars c ON cm.car_id = c.id 
-         WHERE cm.id = ?`,
+         WHERE cm.id = $1`,
         [mediaId]
       );
 
-      if (!mediaResult.length || !mediaResult[0].values.length) {
+      if (!mediaInfo) {
         return res.status(404).json({ error: '文件不存在' });
       }
-
-      const mCols = mediaResult[0].columns;
-      const mVals = mediaResult[0].values[0];
-      const mediaInfo = {};
-      mCols.forEach((col, i) => mediaInfo[col] = mVals[i]);
 
       if (!isAdmin && mediaInfo.created_by !== userId) {
         return res.status(403).json({ error: '权限不足' });
@@ -789,8 +714,7 @@ module.exports = function(db, saveDb) {
         fs.unlinkSync(filePath);
       }
 
-      db.run("DELETE FROM car_media WHERE id = ?", [mediaId]);
-      saveDb();
+      await db.execute("DELETE FROM car_media WHERE id = $1", [mediaId]);
 
       res.json({ success: true });
     } catch (err) {
@@ -799,14 +723,14 @@ module.exports = function(db, saveDb) {
   });
 
   // Delete car
-  router.post('/cars/delete/:id', requireAuth, (req, res) => {
+  router.post('/cars/delete/:id', requireAuth, async (req, res) => {
     const id = parseInt(req.params.id);
     const userId = req.session.user.id;
     const isAdmin = req.session.user.role === 'admin';
 
     try {
-      const checkResult = db.exec("SELECT created_by FROM cars WHERE id = ?", [id]);
-      if (!checkResult.length || !checkResult[0].values.length) {
+      const checkCar = await db.queryOne("SELECT created_by FROM cars WHERE id = $1", [id]);
+      if (!checkCar) {
         return res.status(404).render('error', {
           title: req.t('error.404'),
           message: '车辆不存在',
@@ -816,7 +740,7 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      if (!isAdmin && checkResult[0].values[0][0] !== userId) {
+      if (!isAdmin && checkCar.created_by !== userId) {
         return res.status(403).render('error', {
           title: req.t('error.title'),
           message: '权限不足',
@@ -826,18 +750,15 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const mediaResult = db.exec("SELECT file_path FROM car_media WHERE car_id = ?", [id]);
-      if (mediaResult.length && mediaResult[0].values.length) {
-        for (const val of mediaResult[0].values) {
-          const filePath = path.join(__dirname, '..', 'public', val[0]);
-          if (fs.existsSync(filePath)) {
-            fs.unlinkSync(filePath);
-          }
+      const mediaRows = await db.query("SELECT file_path FROM car_media WHERE car_id = $1", [id]);
+      for (const row of mediaRows) {
+        const filePath = path.join(__dirname, '..', 'public', row.file_path);
+        if (fs.existsSync(filePath)) {
+          fs.unlinkSync(filePath);
         }
       }
 
-      db.run("DELETE FROM cars WHERE id = ?", [id]);
-      saveDb();
+      await db.execute("DELETE FROM cars WHERE id = $1", [id]);
 
       res.redirect('/admin/cars');
     } catch (err) {
@@ -853,23 +774,13 @@ module.exports = function(db, saveDb) {
   });
 
   // User management (admin only)
-  router.get('/users', requireAdmin, (req, res) => {
+  router.get('/users', requireAdmin, async (req, res) => {
     try {
-      const result = db.exec(
+      const users = await db.query(
         `SELECT u.*, 
          (SELECT COUNT(*) FROM cars WHERE created_by = u.id) as car_count 
          FROM users u ORDER BY u.role, u.created_at DESC`
       );
-
-      const users = [];
-      if (result.length && result[0].values.length) {
-        const cols = result[0].columns;
-        for (const val of result[0].values) {
-          const user = {};
-          cols.forEach((col, i) => user[col] = val[i]);
-          users.push(user);
-        }
-      }
 
       res.render('admin/users', {
         title: '用户管理',
@@ -897,16 +808,7 @@ module.exports = function(db, saveDb) {
     const { username, password, display_name } = req.body;
 
     if (!username || !password) {
-      const result = db.exec("SELECT * FROM users ORDER BY role, created_at DESC");
-      const users = [];
-      if (result.length && result[0].values.length) {
-        const cols = result[0].columns;
-        for (const val of result[0].values) {
-          const user = {};
-          cols.forEach((col, i) => user[col] = val[i]);
-          users.push(user);
-        }
-      }
+      const users = await db.query("SELECT * FROM users ORDER BY role, created_at DESC");
       return res.render('admin/users', {
         title: '用户管理',
         user: req.session.user,
@@ -919,18 +821,9 @@ module.exports = function(db, saveDb) {
     }
 
     try {
-      const existCheck = db.exec("SELECT id FROM users WHERE username = ?", [username]);
-      if (existCheck.length && existCheck[0].values.length) {
-        const result = db.exec("SELECT * FROM users ORDER BY role, created_at DESC");
-        const users = [];
-        if (result.length && result[0].values.length) {
-          const cols = result[0].columns;
-          for (const val of result[0].values) {
-            const user = {};
-            cols.forEach((col, i) => user[col] = val[i]);
-            users.push(user);
-          }
-        }
+      const existUser = await db.queryOne("SELECT id FROM users WHERE username = $1", [username]);
+      if (existUser) {
+        const users = await db.query("SELECT * FROM users ORDER BY role, created_at DESC");
         return res.render('admin/users', {
           title: '用户管理',
           user: req.session.user,
@@ -943,11 +836,10 @@ module.exports = function(db, saveDb) {
       }
 
       const hash = await bcrypt.hash(password, 10);
-      db.run(
-        "INSERT INTO users (username, password, display_name, role, created_by) VALUES (?, ?, ?, 'sub', ?)",
+      await db.execute(
+        "INSERT INTO users (username, password, display_name, role, created_by) VALUES ($1, $2, $3, 'sub', $4)",
         [username, hash, display_name || username, req.session.user.id]
       );
-      saveDb();
 
       res.redirect('/admin/users');
     } catch (err) {
@@ -962,7 +854,7 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  // Delete sub-account (admin only)
+  // Delete sub-account
   router.post('/users/delete/:id', requireAdmin, async (req, res) => {
     const userId = parseInt(req.params.id);
 
@@ -971,26 +863,19 @@ module.exports = function(db, saveDb) {
     }
 
     try {
-      const userResult = db.exec("SELECT * FROM users WHERE id = ?", [userId]);
-      if (!userResult.length || !userResult[0].values.length) {
+      const targetUser = await db.queryOne("SELECT * FROM users WHERE id = $1", [userId]);
+      if (!targetUser) {
         return res.redirect('/admin/users?error=' + encodeURIComponent('用户不存在'));
       }
-
-      const cols = userResult[0].columns;
-      const vals = userResult[0].values[0];
-      const targetUser = {};
-      cols.forEach((col, i) => targetUser[col] = vals[i]);
 
       if (targetUser.role === 'admin') {
         return res.redirect('/admin/users?error=' + encodeURIComponent('不能删除主账号'));
       }
 
-      // Transfer cars created by this sub-account to the admin
-      db.run("UPDATE cars SET created_by = ? WHERE created_by = ?", [req.session.user.id, userId]);
-
+      // Transfer cars to admin
+      await db.execute("UPDATE cars SET created_by = $1 WHERE created_by = $2", [req.session.user.id, userId]);
       // Delete the sub-account
-      db.run("DELETE FROM users WHERE id = ?", [userId]);
-      saveDb();
+      await db.execute("DELETE FROM users WHERE id = $1", [userId]);
 
       res.redirect('/admin/users?success=' + encodeURIComponent('子账号已删除，其车辆已转给主账号'));
     } catch (err) {
@@ -999,15 +884,12 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  // Global settings (admin only)
-  router.get('/settings', requireAdmin, (req, res) => {
+  // Global settings
+  router.get('/settings', requireAdmin, async (req, res) => {
     try {
-      const result = db.exec("SELECT * FROM site_settings WHERE id = 1");
-      let settings = { id: 1, contact_wechat: '', contact_whatsapp: '', contact_email: '' };
-      if (result.length && result[0].values.length) {
-        const cols = result[0].columns;
-        const vals = result[0].values[0];
-        cols.forEach((col, i) => settings[col] = vals[i]);
+      let settings = await db.queryOne("SELECT * FROM site_settings WHERE id = 1");
+      if (!settings) {
+        settings = { id: 1, contact_wechat: '', contact_whatsapp: '', contact_email: '' };
       }
       res.render('admin/settings', {
         title: '网站设置',
@@ -1030,11 +912,11 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  router.post('/settings', requireAdmin, (req, res) => {
+  router.post('/settings', requireAdmin, async (req, res) => {
     const { contact_wechat, contact_whatsapp, contact_email } = req.body;
     try {
-      db.run(
-        `UPDATE site_settings SET contact_wechat=?, contact_whatsapp=?, contact_email=?, updated_by=?, updated_at=CURRENT_TIMESTAMP WHERE id=1`,
+      await db.execute(
+        `UPDATE site_settings SET contact_wechat=$1, contact_whatsapp=$2, contact_email=$3, updated_by=$4, updated_at=CURRENT_TIMESTAMP WHERE id=1`,
         [
           (contact_wechat || '').trim(),
           (contact_whatsapp || '').trim(),
@@ -1042,7 +924,6 @@ module.exports = function(db, saveDb) {
           req.session.user.id
         ]
       );
-      saveDb();
       const savedMsg = req.t && req.t('nav.admin') === 'Admin Panel' ? 'Settings saved successfully' : '设置已保存';
       res.redirect('/admin/settings?success=' + encodeURIComponent(savedMsg));
     } catch (err) {
@@ -1051,7 +932,7 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  // Auto-translate car to all supported languages (async, non-blocking for user)
+  // Auto-translate car
   router.post('/cars/translate/:id', requireAuth, async (req, res) => {
     const carId = parseInt(req.params.id);
     const userId = req.session.user.id;
@@ -1061,32 +942,25 @@ module.exports = function(db, saveDb) {
     const fromLang = req.body.from_lang || 'zh';
 
     try {
-      // Verify ownership
-      const ownerResult = db.exec("SELECT created_by FROM cars WHERE id = ?", [carId]);
-      if (!ownerResult.length || !ownerResult[0].values.length) {
+      const ownerCheck = await db.queryOne("SELECT created_by FROM cars WHERE id = $1", [carId]);
+      if (!ownerCheck) {
         return res.redirect('/admin/cars?error=' + encodeURIComponent('车辆不存在'));
       }
-      if (!isAdmin && ownerResult[0].values[0][0] !== userId) {
+      if (!isAdmin && ownerCheck.created_by !== userId) {
         return res.redirect('/admin/cars?error=' + encodeURIComponent('权限不足'));
       }
 
-      // Get current translations
-      const tResult = db.exec(`SELECT translations FROM cars WHERE id = ?`, [carId]);
+      const tResult = await db.queryOne("SELECT translations FROM cars WHERE id = $1", [carId]);
       let translations = {};
-      if (tResult.length && tResult[0].values.length && tResult[0].values[0][0]) {
-        try { translations = JSON.parse(tResult[0].values[0][0]); } catch {}
+      if (tResult && tResult.translations) {
+        try { translations = typeof tResult.translations === 'string' ? JSON.parse(tResult.translations) : tResult.translations; } catch {}
       }
 
-      // Get translatable fields
       const fields = ['brand', 'model', 'description', 'color'];
-      const carResult = db.exec(`SELECT ${fields.join(',')} FROM cars WHERE id = ?`, [carId]);
-      if (!carResult.length || !carResult[0].values.length) {
+      const car = await db.queryOne(`SELECT ${fields.join(',')} FROM cars WHERE id = $1`, [carId]);
+      if (!car) {
         return res.redirect('/admin/cars?error=' + encodeURIComponent('车辆不存在'));
       }
-      const cols = carResult[0].columns;
-      const vals = carResult[0].values[0];
-      const car = {};
-      cols.forEach((c, i) => car[c] = vals[i] || '');
 
       const results = [];
       for (const lang of supportedLangs) {
@@ -1100,10 +974,8 @@ module.exports = function(db, saveDb) {
         }
       }
 
-      db.run(`UPDATE cars SET translations = ? WHERE id = ?`, [JSON.stringify(translations), carId]);
-      saveDb();
+      await db.execute(`UPDATE cars SET translations = $1 WHERE id = $2`, [JSON.stringify(translations), carId]);
 
-      // Store results in session for display
       req.session.translationResults = results.slice(0, 20);
       res.redirect('/admin/cars/edit/' + carId + '?translated=1&lang=' + encodeURIComponent(req.lang));
     } catch (err) {
@@ -1112,7 +984,7 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  // Translate form fields without saving (used on create page)
+  // Translate form fields (AJAX)
   router.post('/cars/translate-fields', requireAuth, async (req, res) => {
     const { brand, model, color, description, from_lang } = req.body;
     const supportedLangs = ['en', 'fr'];

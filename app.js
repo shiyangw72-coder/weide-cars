@@ -4,27 +4,17 @@ const session = require('express-session');
 const path = require('path');
 const fs = require('fs');
 
-
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 // i18n middleware
 const { i18nMiddleware } = require('./middleware/i18n');
 
-// Ensure data directory
-const dataDir = path.join(__dirname, 'data');
-if (!fs.existsSync(dataDir)) {
-  fs.mkdirSync(dataDir, { recursive: true });
-}
-
 // Ensure uploads directory
 const uploadsDir = path.join(__dirname, 'public', 'uploads');
 if (!fs.existsSync(uploadsDir)) {
   fs.mkdirSync(uploadsDir, { recursive: true });
 }
-
-// Session store file
-const sessionFile = path.join(dataDir, 'sessions.json');
 
 // View engine
 app.set('view engine', 'ejs');
@@ -54,7 +44,6 @@ app.use((req, res, next) => {
   next();
 });
 
-
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -75,15 +64,13 @@ app.use(session({
 app.use(i18nMiddleware);
 
 // Initialize database
-const { initDatabase, getDb, saveDb, closeDb } = require('./database/init');
-
-let db;
+const { initDatabase, saveDb, closeDb } = require('./database/pg');
 
 async function start() {
   try {
-    db = await initDatabase();
+    const db = await initDatabase();
 
-    // Routes
+    // Routes - db is now { query, queryOne, execute, getClient }
     const publicRoutes = require('./routes/public')(db, saveDb);
     const authRoutes = require('./routes/auth')(db, saveDb);
     const adminRoutes = require('./routes/admin')(db, saveDb);
