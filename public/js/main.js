@@ -18,4 +18,15 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
+
+  // Mobile: close navbar after clicking a nav link
+  var navbarCollapse = document.querySelector('.navbar-collapse');
+  if (navbarCollapse) {
+    navbarCollapse.querySelectorAll('.nav-link:not(.dropdown-toggle)').forEach(function(link) {
+      link.addEventListener('click', function() {
+        var bsCollapse = bootstrap.Collapse.getInstance(navbarCollapse);
+        if (bsCollapse) bsCollapse.hide();
+      });
+    });
+  }
 });

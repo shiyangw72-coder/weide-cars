@@ -62,7 +62,20 @@
     text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
   }
   @media (max-width: 991px) {
-    .hero-section { min-height: auto; padding-top: 2rem; padding-bottom: 2rem; }
+    .hero-section { min-height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; }
+    .hero-section .display-4 { font-size: 1.75rem; }
+    .hero-section .lead { font-size: 0.95rem; margin-bottom: 0.75rem; }
+    .hero-section .btn-lg { padding: 0.5rem 1rem; font-size: 0.95rem; }
+    .hero-section form { margin-top: 0.75rem; }
+    .hero-section .form-control-lg { font-size: 1rem; padding: 0.5rem 0.75rem; }
+  }
+  @media (max-width: 576px) {
+    .hero-section { padding-top: 1rem; padding-bottom: 1rem; }
+    .hero-section .display-4 { font-size: 1.5rem; }
+    .hero-section .lead { font-size: 0.875rem; margin-bottom: 0.5rem; }
+    .hero-section .mb-4 { margin-bottom: 0.75rem !important; }
+    .hero-section .btn-lg { padding: 0.4rem 0.8rem; font-size: 0.875rem; }
+    .hero-section .form-control-lg { font-size: 0.875rem; height: auto; padding: 0.5rem; }
   }
 
   </style>
