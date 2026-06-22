@@ -3,35 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title><%= title %> - <%= t('siteName') %></title>
+  <title><%= title %> - 伟德车行</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body>
+  <!-- Admin Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
     <div class="container">
       <a class="navbar-brand fw-bold" href="/?lang=<%= lang %>">
-        <i class="bi bi-car-front-fill me-2"></i><%= t('siteName') %>
+        <i class="bi bi-car-front-fill me-2"></i>伟德车行
       </a>
-      <span class="badge bg-warning text-dark me-2"><%= t('nav.adminBadge') %></span>
+      <span class="badge bg-warning text-dark me-2">管理后台</span>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#adminNav">
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="adminNav">
         <ul class="navbar-nav me-auto">
-          <li class="nav-item"><a class="nav-link" href="/admin"><i class="bi bi-speedometer2 me-1"></i><%= t('nav.admin') %></a></li>
-          <li class="nav-item"><a class="nav-link" href="/admin/cars"><i class="bi bi-car-front me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Cars' : '车辆管理' %></a></li>
-          <li class="nav-item"><a class="nav-link active" href="/admin/users"><i class="bi bi-people me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Users' : '用户管理' %></a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin"><i class="bi bi-speedometer2 me-1"></i>仪表盘</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/cars"><i class="bi bi-car-front me-1"></i>车辆管理</a></li>
+          <li class="nav-item"><a class="nav-link active" href="/admin/users"><i class="bi bi-people me-1"></i>用户管理</a></li>
+          <li class="nav-item"><a class="nav-link" href="/admin/settings"><i class="bi bi-gear me-1"></i>系统设置</a></li>
         </ul>
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="/?lang=<%= lang %>"><i class="bi bi-house me-1"></i><%= t('nav.home') %></a></li>
+          <li class="nav-item"><a class="nav-link" href="/?lang=<%= lang %>"><i class="bi bi-house me-1"></i>返回首页</a></li>
           <li class="nav-item dropdown">
             <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-              <i class="bi bi-person-circle me-1"></i><%= user ? (user.display_name || user.username) : 'User' %>
+              <i class="bi bi-person-circle me-1"></i><%= (user && user.display_name) || user.username || 'Admin' %>
             </a>
             <ul class="dropdown-menu dropdown-menu-end">
-              <li><a class="dropdown-item text-danger" href="/auth/logout?lang=<%= lang %>"><i class="bi bi-box-arrow-right me-2"></i><%= t('nav.logout') %></a></li>
+              <li><a class="dropdown-item text-danger" href="/auth/logout?lang=<%= lang %>"><i class="bi bi-box-arrow-right me-2"></i>退出登录</a></li>
             </ul>
           </li>
         </ul>
@@ -40,98 +42,123 @@
   </nav>
 
   <div class="container-fluid py-4 px-4">
+    <!-- Header -->
     <div class="d-flex justify-content-between align-items-center mb-4">
-      <h2 class="mb-0"><%= title %></h2>
+      <h2 class="mb-0"><i class="bi bi-people me-2"></i>用户管理</h2>
       <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#createUserModal">
-        <i class="bi bi-person-plus me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Create User' : '创建用户' %>
+        <i class="bi bi-person-plus me-1"></i>创建子账号
       </button>
     </div>
 
     <% if (error) { %>
-      <div class="alert alert-danger"><%= error %></div>
+      <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <%= error %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
     <% } %>
     <% if (success) { %>
-      <div class="alert alert-success"><%= success %></div>
+      <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <%= success %>
+        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+      </div>
     <% } %>
 
+    <!-- Users Table -->
     <div class="card shadow-sm">
-      <div class="card-body">
-        <table class="table table-hover align-middle">
-          <thead class="table-dark">
-            <tr>
-              <th>ID</th>
-              <th><%= t('nav.admin') === 'Admin Panel' ? 'Username' : '用户名' %></th>
-              <th><%= t('nav.admin') === 'Admin Panel' ? 'Display Name' : '显示名' %></th>
-              <th><%= t('nav.admin') === 'Admin Panel' ? 'Role' : '角色' %></th>
-              <th><%= t('nav.admin') === 'Admin Panel' ? 'Cars' : '车辆数' %></th>
-              <th><%= t('nav.admin') === 'Admin Panel' ? 'Created' : '创建时间' %></th>
-              <th><%= t('nav.admin') === 'Admin Panel' ? 'Actions' : '操作' %></th>
-            </tr>
-          </thead>
-          <tbody>
-            <% if (users && users.length > 0) { %>
-              <% users.forEach(function(u) { %>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-hover align-middle mb-0">
+            <thead class="table-dark">
               <tr>
-                <td><%= u.id %></td>
-                <td><strong><%= u.username %></strong></td>
-                <td><%= u.display_name || '-' %></td>
-                <td>
-                  <% if (u.role === 'admin') { %>
-                    <span class="badge bg-danger"><%= t('nav.admin') === 'Admin Panel' ? 'Admin' : '管理员' %></span>
-                  <% } else { %>
-                    <span class="badge bg-secondary"><%= u.role || 'sub' %></span>
-                  <% } %>
-                </td>
-                <td><%= u.car_count || 0 %></td>
-                <td><small><%= u.created_at ? u.created_at.substring(0, 10) : '-' %></small></td>
-                <td>
-                  <% if (u.role !== 'admin') { %>
-                    <form method="POST" action="/admin/users/delete/<%= u.id %>" style="display:inline;" onsubmit="return confirm('<%= t('nav.admin') === "Admin Panel" ? "Delete this sub-account? Cars will be transferred to admin." : "确定删除该子账号？其车辆将转给主账号。" %>');">
-                      <button type="submit" class="btn btn-sm btn-outline-danger">
-                        <i class="bi bi-trash"></i>
-                      </button>
-                    </form>
-                  <% } else { %>
-                    <span class="text-muted small">-</span>
-                  <% } %>
-                </td>
+                <th style="width:50px">#</th>
+                <th>用户名</th>
+                <th>显示名</th>
+                <th>角色</th>
+                <th style="width:100px">车辆数</th>
+                <th style="width:120px">创建时间</th>
+                <th style="width:80px">操作</th>
               </tr>
-              <% }); %>
-            <% } else { %>
-              <tr><td colspan="7" class="text-center text-muted py-4"><%= t('nav.admin') === 'Admin Panel' ? 'No users found' : '暂无用户' %></td></tr>
-            <% } %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% if (users && users.length > 0) { %>
+                <% users.forEach(function(u, idx) { %>
+                <tr>
+                  <td><%= idx + 1 %></td>
+                  <td><strong><%= u.username %></strong></td>
+                  <td><%= u.display_name || '-' %></td>
+                  <td>
+                    <% if (u.role === 'admin') { %>
+                      <span class="badge bg-danger">管理员</span>
+                    <% } else { %>
+                      <span class="badge bg-secondary">子账号</span>
+                    <% } %>
+                  </td>
+                  <td><span class="badge bg-info"><%= u.car_count || 0 %></span></td>
+                  <td><small class="text-muted"><%= u.created_at ? String(u.created_at).substring(0, 10) : '-' %></small></td>
+                  <td>
+                    <% if (u.role !== 'admin' && u.id !== (user && user.id)) { %>
+                      <form method="POST" action="/admin/users/delete/<%= u.id %>" style="display:inline;" onsubmit="return confirm('确定删除该子账号？其车辆将转给主账号。');">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="删除">
+                          <i class="bi bi-trash"></i>
+                        </button>
+                      </form>
+                    <% } else { %>
+                      <span class="text-muted">-</span>
+                    <% } %>
+                  </td>
+                </tr>
+                <% }); %>
+              <% } else { %>
+                <tr>
+                  <td colspan="7" class="text-center text-muted py-4">
+                    <i class="bi bi-inbox d-block mb-2" style="font-size:2rem;"></i>
+                    暂无子账号，点击右上角按钮创建
+                  </td>
+                </tr>
+              <% } %>
+            </tbody>
+          </table>
+        </div>
       </div>
+    </div>
+
+    <!-- Help Text -->
+    <div class="mt-3 text-muted small">
+      <i class="bi bi-info-circle me-1"></i>
+      子账号可以创建车辆（需管理员审核通过后前台可见），但不能访问系统设置或管理其他用户。
     </div>
   </div>
 
   <!-- Create User Modal -->
   <div class="modal fade" id="createUserModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
       <div class="modal-content">
         <form method="POST" action="/admin/users/create">
-          <div class="modal-header">
-            <h5 class="modal-title"><%= t('nav.admin') === 'Admin Panel' ? 'Create New User' : '创建新用户' %></h5>
-            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          <div class="modal-header bg-primary text-white">
+            <h5 class="modal-title mb-0"><i class="bi bi-person-plus me-2"></i>创建新子账号</h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
           </div>
           <div class="modal-body">
             <div class="mb-3">
-              <label class="form-label"><%= t('nav.admin') === 'Admin Panel' ? 'Username *' : '用户名 *' %></label>
-              <input type="text" name="username" class="form-control" required>
+              <label for="newUsername" class="form-label fw-bold">用户名 <span class="text-danger">*</span></label>
+              <input type="text" name="username" id="newUsername" class="form-control" placeholder="输入登录用户名" required minlength="3" maxlength="50">
+              <div class="form-text">用于登录后台的用户名</div>
             </div>
             <div class="mb-3">
-              <label class="form-label"><%= t('nav.admin') === 'Admin Panel' ? 'Password *' : '密码 *' %></label>
-              <input type="password" name="password" class="form-control" required minlength="6">
+              <label for="newPassword" class="form-label fw-bold">密码 <span class="text-danger">*</span></label>
+              <input type="password" name="password" id="newPassword" class="form-control" placeholder="至少6位密码" required minlength="6">
+              <div class="form-text">建议使用字母+数字组合</div>
             </div>
             <div class="mb-3">
-              <label class="form-label"><%= t('nav.admin') === 'Admin Panel' ? 'Display Name' : '显示名' %></label>
-              <input type="text" name="display_name" class="form-control">
+              <label for="newDisplayName" class="form-label fw-bold">显示名</label>
+              <input type="text" name="display_name" id="newDisplayName" class="form-control" placeholder="可选，不填则使用用户名">
             </div>
           </div>
           <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><%= t('nav.admin') === 'Admin Panel' ? 'Cancel' : '取消' %></button>
-            <button type="submit" class="btn btn-primary"><%= t('nav.admin') === 'Admin Panel' ? 'Create' : '创建' %></button>
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-check-lg me-1"></i>确认创建
+            </button>
           </div>
         </form>
       </div>

@@ -104,10 +104,10 @@ function wrapUpload(uploadMiddleware, formType) {
   return (req, res, next) => {
     uploadMiddleware(req, res, (err) => {
       if (err) {
-        let msg = '文件上传错误：';
+        let msg = '文件上传错误�?;
         if (err instanceof multer.MulterError) {
-          if (err.code === 'LIMIT_FILE_SIZE') msg = '文件过大，单个文件不能超过 100MB';
-          else if (err.code === 'LIMIT_FILE_COUNT') msg = '文件数量超出限制（最多9张图片+1个视频）';
+          if (err.code === 'LIMIT_FILE_SIZE') msg = '文件过大，单个文件不能超�?100MB';
+          else if (err.code === 'LIMIT_FILE_COUNT') msg = '文件数量超出限制（最�?张图�?1个视频）';
           else if (err.code === 'LIMIT_FIELD_KEY') msg = '表单字段过多';
           else msg += err.message;
         } else {
@@ -147,7 +147,7 @@ function validateCarFields(body, isCreate, req) {
   const required = ['brand', 'model', 'year', 'mileage', 'cost_price', 'color', 'fuel_type', 'transmission', 'category', 'displacement', 'description'];
   for (const field of required) {
     if (!body[field] || String(body[field]).trim() === '') {
-      return `${isCreate ? req.t('nav.admin') === 'Admin Panel' ? 'Field' : '字段' : '更新车辆时'} ${field} ${req.t('nav.admin') === 'Admin Panel' ? 'is required' : '为必填项'}`;
+      return `${isCreate ? req.t('nav.admin') === 'Admin Panel' ? 'Field' : '字段' : '更新车辆�?} ${field} ${req.t('nav.admin') === 'Admin Panel' ? 'is required' : '为必填项'}`;
     }
   }
   return null;
@@ -157,8 +157,8 @@ function validateMediaCounts(images, videos, existingImages, existingVideos, isC
   const totalImages = (existingImages || 0) + images.length;
   const totalVideos = (existingVideos || 0) + videos.length;
   const isEnglish = req.t('nav.admin') === 'Admin Panel';
-  if (totalImages > 9) return isEnglish ? 'Maximum 9 images total' : '图片总数不能超过 9 张';
-  if (totalVideos > 1) return isEnglish ? 'Maximum 1 video total' : '视频总数不能超过 1 个';
+  if (totalImages > 9) return isEnglish ? 'Maximum 9 images total' : '图片总数不能超过 9 �?;
+  if (totalVideos > 1) return isEnglish ? 'Maximum 1 video total' : '视频总数不能超过 1 �?;
   if (isCreate && images.length === 0 && videos.length === 0) {
     return isEnglish ? 'Please upload at least one image or video' : '请至少上传一张图片或视频';
   }
@@ -256,13 +256,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Dashboard error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -300,13 +294,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Cars list error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -373,7 +361,7 @@ module.exports = function(db, saveDb) {
         title: '添加车辆',
         user: req.session.user,
         car: null,
-        error: '添加失败：' + err.message,
+        error: '添加失败�? + err.message,
         lang: req.lang,
         t: req.t
       });
@@ -392,23 +380,11 @@ module.exports = function(db, saveDb) {
 
       const car = await db.queryOne("SELECT * FROM cars WHERE id = $1", [id]);
       if (!car) {
-        return res.status(404).render('error', {
-          title: req.t('error.404'),
-          message: '车辆不存在',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(500).send('<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>Error</h2><p class=text-muted>操作失败，请重试</p><a href=/admin class=btn btn-primary>返回后台</a></div></body></html>');
       }
 
       if (!isAdmin && car.created_by !== userId) {
-        return res.status(403).render('error', {
-          title: req.t('error.title'),
-          message: '你无权编辑此车辆',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(`403).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`你无权编辑此车辆</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
       }
 
       const media = await db.query("SELECT * FROM car_media WHERE car_id = $1 ORDER BY sort_order", [id]);
@@ -428,13 +404,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Edit car error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -460,23 +430,11 @@ module.exports = function(db, saveDb) {
     try {
       const existingCar = await db.queryOne("SELECT * FROM cars WHERE id = $1", [id]);
       if (!existingCar) {
-        return res.status(404).render('error', {
-          title: req.t('error.404'),
-          message: '车辆不存在',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(500).send('<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>Error</h2><p class=text-muted>操作失败，请重试</p><a href=/admin class=btn btn-primary>返回后台</a></div></body></html>');
       }
 
       if (!isAdmin && existingCar.created_by !== userId) {
-        return res.status(403).render('error', {
-          title: req.t('error.title'),
-          message: '权限不足',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(`403).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`权限不足</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
       }
 
       const mediaCounts = await db.query("SELECT file_type, COUNT(*) as c FROM car_media WHERE car_id = $1 GROUP BY file_type", [id]);
@@ -527,13 +485,7 @@ module.exports = function(db, saveDb) {
       res.redirect('/admin/cars');
     } catch (err) {
       console.error('Update car error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '更新失败：' + err.message,
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(500).send('<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>Error</h2><p class=text-muted>操作失败，请重试</p><a href=/admin class=btn btn-primary>返回后台</a></div></body></html>');
     }
   });
 
@@ -557,13 +509,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Review list error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -573,13 +519,7 @@ module.exports = function(db, saveDb) {
     try {
       const car = await db.queryOne("SELECT * FROM cars WHERE id = $1 AND status = 'pending'", [id]);
       if (!car) {
-        return res.status(404).render('error', {
-          title: req.t('error.404'),
-          message: '车辆不存在或已审核',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(500).send('<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>Error</h2><p class=text-muted>操作失败，请重试</p><a href=/admin class=btn btn-primary>返回后台</a></div></body></html>');
       }
 
       const media = await db.query("SELECT * FROM car_media WHERE car_id = $1 ORDER BY sort_order", [id]);
@@ -598,13 +538,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Review form error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -615,13 +549,7 @@ module.exports = function(db, saveDb) {
     try {
       const checkCar = await db.queryOne("SELECT * FROM cars WHERE id = $1 AND status = 'pending'", [id]);
       if (!checkCar) {
-        return res.status(404).render('error', {
-          title: req.t('error.404'),
-          message: '车辆不存在或已审核',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(500).send('<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>Error</h2><p class=text-muted>操作失败，请重试</p><a href=/admin class=btn btn-primary>返回后台</a></div></body></html>');
       }
 
       if (action === 'reject') {
@@ -631,7 +559,7 @@ module.exports = function(db, saveDb) {
       }
 
       if (!price || price === '' || parseFloat(price) <= 0) {
-        return res.redirect('/admin/review/' + id + '?error=' + encodeURIComponent('请填写售价（USD）'));
+        return res.redirect('/admin/review/' + id + '?error=' + encodeURIComponent('请填写售价（USD�?));
       }
 
       const finalPrice = parseFloat(price);
@@ -656,13 +584,7 @@ module.exports = function(db, saveDb) {
       res.redirect('/admin/review');
     } catch (err) {
       console.error('Review error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '审核失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`审核失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -681,7 +603,7 @@ module.exports = function(db, saveDb) {
       );
 
       if (!mediaInfo) {
-        return res.status(404).json({ error: '文件不存在' });
+        return res.status(404).json({ error: '文件不存�? });
       }
 
       if (!isAdmin && mediaInfo.created_by !== userId) {
@@ -706,23 +628,11 @@ module.exports = function(db, saveDb) {
     try {
       const checkCar = await db.queryOne("SELECT created_by FROM cars WHERE id = $1", [id]);
       if (!checkCar) {
-        return res.status(404).render('error', {
-          title: req.t('error.404'),
-          message: '车辆不存在',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(500).send('<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>Error</h2><p class=text-muted>操作失败，请重试</p><a href=/admin class=btn btn-primary>返回后台</a></div></body></html>');
       }
 
       if (!isAdmin && checkCar.created_by !== userId) {
-        return res.status(403).render('error', {
-          title: req.t('error.title'),
-          message: '权限不足',
-          user: req.session.user,
-          lang: req.lang,
-          t: req.t
-        });
+        return res.status(`403).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`权限不足</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
       }
 
       // No filesystem cleanup needed - data stored in PG database
@@ -731,13 +641,7 @@ module.exports = function(db, saveDb) {
       res.redirect('/admin/cars');
     } catch (err) {
       console.error('Delete car error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '删除失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`删除失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -761,13 +665,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Users list error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -812,13 +710,7 @@ module.exports = function(db, saveDb) {
       res.redirect('/admin/users');
     } catch (err) {
       console.error('Create user error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '创建用户失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`创建用户失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -833,11 +725,11 @@ module.exports = function(db, saveDb) {
     try {
       const targetUser = await db.queryOne("SELECT * FROM users WHERE id = $1", [userId]);
       if (!targetUser) {
-        return res.redirect('/admin/users?error=' + encodeURIComponent('用户不存在'));
+        return res.redirect('/admin/users?error=' + encodeURIComponent('用户不存�?));
       }
 
       if (targetUser.role === 'admin') {
-        return res.redirect('/admin/users?error=' + encodeURIComponent('不能删除主账号'));
+        return res.redirect('/admin/users?error=' + encodeURIComponent('不能删除主账�?));
       }
 
       // Transfer cars to admin
@@ -848,7 +740,7 @@ module.exports = function(db, saveDb) {
       res.redirect('/admin/users?success=' + encodeURIComponent('子账号已删除，其车辆已转给主账号'));
     } catch (err) {
       console.error('Delete user error:', err);
-      res.redirect('/admin/users?error=' + encodeURIComponent('删除失败：' + err.message));
+      res.redirect('/admin/users?error=' + encodeURIComponent('删除失败�? + err.message));
     }
   });
 
@@ -870,13 +762,7 @@ module.exports = function(db, saveDb) {
       });
     } catch (err) {
       console.error('Settings error:', err);
-      res.status(500).render('error', {
-        title: req.t('error.title'),
-        message: '加载失败',
-        user: req.session.user,
-        lang: req.lang,
-        t: req.t
-      });
+      res.status(`500).send(`<html><head><meta charset=utf-8><title>Error</title><link href=https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css rel=stylesheet></head><body class=bg-light><div class=container py-5 text-center><h2>?? Error</h2><p class=text-muted>`加载失败</p><a href=/admin class=btn btn-primary>���غ�̨</a></div></body></html>`);
     }
   });
 
@@ -892,11 +778,11 @@ module.exports = function(db, saveDb) {
           req.session.user.id
         ]
       );
-      const savedMsg = req.t && req.t('nav.admin') === 'Admin Panel' ? 'Settings saved successfully' : '设置已保存';
+      const savedMsg = req.t && req.t('nav.admin') === 'Admin Panel' ? 'Settings saved successfully' : '设置已保�?;
       res.redirect('/admin/settings?success=' + encodeURIComponent(savedMsg));
     } catch (err) {
       console.error('Save settings error:', err);
-      res.redirect('/admin/settings?error=' + encodeURIComponent('保存失败：' + err.message));
+      res.redirect('/admin/settings?error=' + encodeURIComponent('保存失败�? + err.message));
     }
   });
 
@@ -912,7 +798,7 @@ module.exports = function(db, saveDb) {
     try {
       const ownerCheck = await db.queryOne("SELECT created_by FROM cars WHERE id = $1", [carId]);
       if (!ownerCheck) {
-        return res.redirect('/admin/cars?error=' + encodeURIComponent('车辆不存在'));
+        return res.redirect('/admin/cars?error=' + encodeURIComponent('车辆不存�?));
       }
       if (!isAdmin && ownerCheck.created_by !== userId) {
         return res.redirect('/admin/cars?error=' + encodeURIComponent('权限不足'));
@@ -927,7 +813,7 @@ module.exports = function(db, saveDb) {
       const fields = ['brand', 'model', 'description', 'color'];
       const car = await db.queryOne(`SELECT ${fields.join(',')} FROM cars WHERE id = $1`, [carId]);
       if (!car) {
-        return res.redirect('/admin/cars?error=' + encodeURIComponent('车辆不存在'));
+        return res.redirect('/admin/cars?error=' + encodeURIComponent('车辆不存�?));
       }
 
       const results = [];
@@ -937,7 +823,7 @@ module.exports = function(db, saveDb) {
           if (car[field] && car[field].trim()) {
             const result = await translateText(car[field], fromLang, lang);
             translations[lang][field] = result;
-            results.push(`${langNames[lang]}: ${car[field]} → ${result}`);
+            results.push(`${langNames[lang]}: ${car[field]} �?${result}`);
           }
         }
       }
@@ -948,7 +834,7 @@ module.exports = function(db, saveDb) {
       res.redirect('/admin/cars/edit/' + carId + '?translated=1&lang=' + encodeURIComponent(req.lang));
     } catch (err) {
       console.error('Translate error:', err);
-      res.redirect('/admin/cars?error=' + encodeURIComponent('翻译失败：' + err.message));
+      res.redirect('/admin/cars?error=' + encodeURIComponent('翻译失败�? + err.message));
     }
   });
 
@@ -979,7 +865,7 @@ module.exports = function(db, saveDb) {
       res.json({ translations });
     } catch (err) {
       console.error('Translate fields error:', err);
-      res.json({ error: req.t && req.t('nav.admin') === 'Admin Panel' ? 'Translation failed: ' : '翻译失败：' + err.message });
+      res.json({ error: req.t && req.t('nav.admin') === 'Admin Panel' ? 'Translation failed: ' : '翻译失败�? + err.message });
     }
   });
 
