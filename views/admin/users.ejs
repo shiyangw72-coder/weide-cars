@@ -94,7 +94,7 @@
                     <% } %>
                   </td>
                   <td><span class="badge bg-info"><%= u.car_count || 0 %></span></td>
-                  <td><small class="text-muted"><%= u.created_at ? String(u.created_at).substring(0, 10) : '-' %></small></td>
+                  <td><small class="text-muted"><%= u.created_at ? new Date(u.created_at).toLocaleDateString('zh-CN') : '-' %></small></td>
                   <td>
                     <% if (u.role !== 'admin' && u.id !== (user && user.id)) { %>
                       <form method="POST" action="/admin/users/delete/<%= u.id %>" style="display:inline;" onsubmit="return confirm('确定删除该子账号？其车辆将转给主账号。');">
