@@ -61,28 +61,53 @@
     opacity: 0.95;
     text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
   }
+
+  /* ===== Mobile: compact hero, everything scrolls naturally ===== */
   @media (max-width: 991px) {
-    .hero-section { min-height: auto; padding-top: 1.5rem; padding-bottom: 1.5rem; }
-    .hero-section .display-4 { font-size: 1.75rem; }
-    .hero-section .lead { font-size: 0.95rem; margin-bottom: 0.75rem; }
-    .hero-section .btn-lg { padding: 0.5rem 1rem; font-size: 0.95rem; }
-    .hero-section form { margin-top: 0.75rem; }
-    .hero-section .form-control-lg { font-size: 1rem; padding: 0.5rem 0.75rem; }
-    /* Mobile: stack search form vertically */
-    .hero-section form.d-flex { flex-direction: column; width: 100%; }
-    .hero-section form.d-flex input[type="text"] { width: 100% !important; border-radius: 8px !important; margin-bottom: 6px; }
-    .hero-section form.d-flex button.btn-primary { width: 100%; border-radius: 8px !important; }
-  }
-  @media (max-width: 576px) {
-    .hero-section { padding-top: 1rem; padding-bottom: 1rem; }
-    .hero-section .display-4 { font-size: 1.4rem; }
-    .hero-section .lead { font-size: 0.85rem; margin-bottom: 0.5rem; }
-    .hero-section .mb-4 { margin-bottom: 0.5rem !important; }
-    .hero-section .btn-lg { padding: 0.4rem 0.8rem; font-size: 0.85rem; }
-    .hero-section .form-control-lg { font-size: 0.9rem; height: auto; padding: 0.55rem 0.75rem; }
-    /* Extra small: compact hero */
-    .hero-section h1 { margin-bottom: 2px !important; }
-    .hero-section p.lead { margin-bottom: 3px !important; }
+    .hero-section {
+      min-height: auto !important;
+      padding: 1rem 0 !important;
+      display: block !important;
+      align-items: unset !important;
+    }
+    .hero-section h1 {
+      font-size: 1.5rem !important;
+      margin-bottom: 2px !important;
+    }
+    .hero-section p.lead {
+      font-size: 0.85rem !important;
+      margin-bottom: 6px !important;
+      opacity: 0.9;
+    }
+    /* Hide the big yellow CTA button on mobile - save space */
+    .hero-section > .container > .row > div:first-child > .mb-4 {
+      display: none !important;
+    }
+    /* Search form: full width, stacked */
+    .hero-section form {
+      width: 100% !important;
+      margin: 0 !important;
+      display: flex !important;
+      flex-direction: column !important;
+      gap: 5px !important;
+    }
+    .hero-section form input[type="text"] {
+      width: 100% !important;
+      border-radius: 8px !important;
+      font-size: 0.9rem !important;
+      height: auto !important;
+      padding: 8px 12px !important;
+    }
+    .hero-section form button.btn-primary {
+      width: 100% !important;
+      border-radius: 8px !important;
+      padding: 8px !important;
+      font-size: 0.9rem !important;
+    }
+    /* Hide the decorative car icon on mobile */
+    .hero-section .col-lg-5 {
+      display: none !important;
+    }
   }
 
   </style>
