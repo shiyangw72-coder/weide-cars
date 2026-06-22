@@ -20,7 +20,26 @@ module.exports = function(db, saveDb) {
     return car;
   }
 
-  router.get('/', async (req, res) => {
+    // Serve media files from database
+  router.get('/media/:id', async (req, res) => {
+    try {
+      const mediaId = parseInt(req.params.id);
+      const media = await db.queryOne("SELECT * FROM car_media WHERE id = $1", [mediaId]);
+      if (!media || !media.file_data) {
+        return res.status(404).send('File not found');
+      }
+      const buf = Buffer.from(media.file_data, 'base64');
+      const mime = media.mime_type || 'application/octet-stream';
+      res.set('Content-Type', mime);
+      res.set('Cache-Control', 'public, max-age=86400');
+      res.send(buf);
+    } catch (err) {
+      console.error('Media serve error:', err);
+      res.status(500).send('Error loading file');
+    }
+  });
+
+router.get('/', async (req, res) => {
     const page = parseInt(req.query.page) || 1;
     const limit = 12;
     const offset = (page - 1) * limit;
@@ -67,17 +86,17 @@ module.exports = function(db, saveDb) {
 
       for (const car of cars) {
         const coverMedia = await db.queryOne(
-          "SELECT file_path FROM car_media WHERE car_id = $1 AND is_cover = 1 LIMIT 1",
+          "SELECT id FROM car_media WHERE car_id = $1 AND is_cover = 1 LIMIT 1",
           [car.id]
         );
         if (coverMedia) {
-          car.cover_image = coverMedia.file_path;
+          car.cover_image = '/media/' + coverMedia.id;
         } else {
           const imgMedia = await db.queryOne(
-            "SELECT file_path FROM car_media WHERE car_id = $1 AND file_type = 'image' LIMIT 1",
+            "SELECT id FROM car_media WHERE car_id = $1 AND file_type = 'image' LIMIT 1",
             [car.id]
           );
-          car.cover_image = imgMedia ? imgMedia.file_path : null;
+          car.cover_image = imgMedia ? '/media/' + imgMedia.id : null;
         }
       }
 

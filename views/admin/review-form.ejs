@@ -103,9 +103,9 @@
                   <div class="col-3">
                     <div class="border rounded p-1 text-center" style="height: 120px; overflow: hidden;">
                       <% if (item.file_type === 'image') { %>
-                        <img src="<%= item.file_path %>" style="max-width:100%; max-height:100px;">
+                        <img src="/media/<%= item.id %>" style="max-width:100%; max-height:100px;">
                       <% } else { %>
-                        <video src="<%= item.file_path %>" style="max-width:100%; max-height:100px;" controls></video>
+                        <video src="/media/<%= item.id %>" style="max-width:100%; max-height:100px;" controls></video>
                       <% } %>
                     </div>
                   </div>

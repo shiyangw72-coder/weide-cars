@@ -72,10 +72,10 @@
                 <% allMedia.forEach(function(item, idx) { %>
                 <div class="carousel-item <%= idx === 0 ? 'active' : '' %>">
                   <% if (item.file_type === 'image') { %>
-                    <img src="<%= item.file_path %>" class="d-block w-100" style="max-height:500px; object-fit:cover;" alt="<%= t('car.description') %>">
+                    <img src="/media/<%= item.id %>" class="d-block w-100" style="max-height:500px; object-fit:cover;" alt="<%= t('car.description') %>">
                   <% } else { %>
                     <video class="d-block w-100" style="max-height:500px;" controls>
-                      <source src="<%= item.file_path %>">
+                      <source src="/media/<%= item.id %>">
                     </video>
                   <% } %>
                 </div>

@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const multer = require('multer');
 const path = require('path');
-const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const https = require('https');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
@@ -67,20 +66,8 @@ async function translateText(text, fromLang, toLang) {
   });
 }
 
-const storage = multer.diskStorage({
-  destination: (req, file, cb) => {
-    const uploadDir = path.join(__dirname, '..', 'public', 'uploads');
-    if (!fs.existsSync(uploadDir)) {
-      fs.mkdirSync(uploadDir, { recursive: true });
-    }
-    cb(null, uploadDir);
-  },
-  filename: (req, file, cb) => {
-    const ext = path.extname(file.originalname);
-    const name = Date.now() + '-' + Math.round(Math.random() * 1e9) + ext;
-    cb(null, name);
-  }
-});
+// Memory storage - files remain in buffer, stored to DB as base64
+const storage = multer.memoryStorage();
 
 const fileFilter = (req, file, cb) => {
   const allowedImages = /\.(jpg|jpeg|png|gif|webp)$/i;
@@ -200,27 +187,22 @@ async function saveMediaFiles(db, carId, files, existingImageCount, existingVide
   for (let i = 0; i < allFiles.length; i++) {
     const file = allFiles[i];
     const isImage = file.mimetype.startsWith('image/');
-    const relativePath = '/uploads/' + file.filename;
+    const base64Data = file.buffer ? file.buffer.toString('base64') : null;
     let isCover = 0;
     if (!hasCover && isImage) {
       isCover = 1;
       hasCover = true;
     }
     await db.execute(
-      "INSERT INTO car_media (car_id, file_path, file_type, sort_order, is_cover) VALUES ($1, $2, $3, $4, $5)",
-      [carId, relativePath, isImage ? 'image' : 'video', sortStart + i, isCover]
+      "INSERT INTO car_media (car_id, file_path, file_data, mime_type, file_type, sort_order, is_cover) VALUES ($1, $2, $3, $4, $5, $6, $7)",
+      [carId, '', base64Data, file.mimetype, isImage ? 'image' : 'video', sortStart + i, isCover]
     );
   }
 }
 
 async function deleteCarMediaFiles(db, carId) {
-  const mediaRows = await db.query("SELECT file_path FROM car_media WHERE car_id = $1", [carId]);
-  for (const row of mediaRows) {
-    const filePath = path.join(__dirname, '..', 'public', row.file_path);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-  }
+  // No filesystem cleanup needed - data is stored in DB
+  // DELETE is handled by CASCADE on car deletion
 }
 
 function buildTranslations(body) {
@@ -709,11 +691,7 @@ module.exports = function(db, saveDb) {
         return res.status(403).json({ error: '权限不足' });
       }
 
-      const filePath = path.join(__dirname, '..', 'public', mediaInfo.file_path);
-      if (fs.existsSync(filePath)) {
-        fs.unlinkSync(filePath);
-      }
-
+      // No filesystem cleanup needed - data stored in DB
       await db.execute("DELETE FROM car_media WHERE id = $1", [mediaId]);
 
       res.json({ success: true });
@@ -750,14 +728,7 @@ module.exports = function(db, saveDb) {
         });
       }
 
-      const mediaRows = await db.query("SELECT file_path FROM car_media WHERE car_id = $1", [id]);
-      for (const row of mediaRows) {
-        const filePath = path.join(__dirname, '..', 'public', row.file_path);
-        if (fs.existsSync(filePath)) {
-          fs.unlinkSync(filePath);
-        }
-      }
-
+      // No filesystem cleanup needed - data stored in PG database
       await db.execute("DELETE FROM cars WHERE id = $1", [id]);
 
       res.redirect('/admin/cars');

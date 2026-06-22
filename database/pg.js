@@ -75,13 +75,23 @@ async function initDatabase() {
     CREATE TABLE IF NOT EXISTS car_media (
       id SERIAL PRIMARY KEY,
       car_id INTEGER NOT NULL REFERENCES cars(id) ON DELETE CASCADE,
-      file_path TEXT NOT NULL,
+      file_path TEXT NOT NULL DEFAULT '',
+      file_data TEXT,
+      mime_type TEXT DEFAULT '',
       file_type TEXT NOT NULL CHECK(file_type IN ('image', 'video')),
       sort_order INTEGER DEFAULT 0,
       is_cover INTEGER DEFAULT 0,
       created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Add file_data and mime_type columns if they don't exist (migration)
+  try {
+    await query("ALTER TABLE car_media ADD COLUMN IF NOT EXISTS file_data TEXT");
+    await query("ALTER TABLE car_media ADD COLUMN IF NOT EXISTS mime_type TEXT");
+  } catch(e) {
+    console.log('Migration columns may already exist:', e.message);
+  }
 
   await query(`
     CREATE TABLE IF NOT EXISTS site_settings (

@@ -187,9 +187,9 @@
                   <div class="col-2 position-relative">
                     <div class="border rounded p-1 text-center" style="height: 100px; overflow: hidden;">
                       <% if (item.file_type === 'image') { %>
-                        <img src="<%= item.file_path %>" style="max-width:100%; max-height:80px;">
+                        <img src="/media/<%= item.id %>" style="max-width:100%; max-height:80px;">
                       <% } else { %>
-                        <video src="<%= item.file_path %>" style="max-width:100%; max-height:80px;"></video>
+                        <video src="/media/<%= item.id %>" style="max-width:100%; max-height:80px;"></video>
                       <% } %>
                     </div>
                     <button type="button" class="btn btn-sm btn-danger position-absolute top-0 end-0" onclick="deleteMedia(<%= item.id %>)">&times;</button>
