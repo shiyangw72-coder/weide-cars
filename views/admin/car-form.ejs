@@ -443,40 +443,8 @@
   setupAccumulateInput('newImagesInput', 'newImagesPreview', 'image');
   setupAccumulateInput('newVideoInput', 'newVideoPreview', 'video');
 
-    // ===== 表单提交处理（手动fetch提交）=====
-  (function() {
-    var btn = document.getElementById("submitBtn");
-    if (!btn) return;
-    var formEl = document.querySelector('form[enctype="multipart/form-data"]');
-    if (!formEl) return;
-
-    btn.addEventListener("click", function(e) {
-      e.preventDefault();
-      e.stopPropagation();
-      btn.disabled = true;
-      btn.innerHTML = "<span class=\"spinner-border spinner-border-sm me-1\"></span>上传中...";
-      var fd = new FormData(formEl);
-      fetch(formEl.action, { method: "POST", body: fd })
-        .then(function(resp) {
-          if (resp.ok || resp.status === 302 || resp.redirected) {
-            window.location.href = "/admin/cars";
-          } else {
-            return resp.text().then(function(html) {
-              var match = html.match(/alert-danger[^>]*>([^<]*)/);
-              var errMsg = match ? match[1] : ("Server error " + resp.status);
-              alert("保存失败: " + errMsg);
-              btn.disabled = false;
-              btn.innerHTML = "<i class=\"bi bi-check-lg me-1\"></i>" + (formEl.action.includes('create') ? '创建' : '更新');
-            });
-          }
-        })
-        .catch(function(err) {
-          alert("提交失败: " + err.message);
-          btn.disabled = false;
-          btn.innerHTML = "<i class=\"bi bi-check-lg me-1\"></i>" + (formEl.action.includes('create') ? '创建' : '更新');
-        });
-    });
-  })();;
+  // ===== 表单提交：浏览器原生 POST =====
+  // type="submit" 按钮会原生提交 multipart/form-data，无需 JS 拦截
 
   document.getElementById('translateForm') && document.getElementById('translateForm').addEventListener('submit', function(e) {
     const btn = this.querySelector('button[type="submit"]');
