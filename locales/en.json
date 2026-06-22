@@ -1,0 +1,67 @@
+{
+  "siteName": "Weide Auto",
+  "siteSlogan": "China Used Car Export Expert",
+  "nav": {
+    "home": "Home",
+    "cars": "Inventory",
+    "export": "Export Services",
+    "about": "About Us",
+    "contact": "Contact",
+    "admin": "Admin Panel",
+    "login": "Login",
+    "logout": "Logout",
+    "adminBadge": "Admin"
+  },
+  "hero": {
+    "title": "China Used Car Export Expert",
+    "subtitle": "Serving global markets with one-stop B2B export services from sourcing to port delivery.",
+    "searchPlaceholder": "Search brand, model, year...",
+    "searchBtn": "Search",
+    "ctaButton": "✅ Direct Source · Professional Inspection · Global Shipping"
+  },
+  "home": {
+    "newAndUsed": "New & used cars available. Direct source, quality guaranteed."
+  },
+  "filter": {
+    "all": "All"
+  },
+  "car": {
+    "forSale": "For Sale",
+    "sold": "Sold",
+    "viewDetails": "View Details",
+    "priceNegotiable": "Price Negotiable",
+    "year": "",
+    "mileage": "km",
+    "km": "km",
+    "registrationYear": "Year",
+    "odometer": "Mileage",
+    "transmission": "Transmission",
+    "fuelType": "Fuel Type",
+    "color": "Color",
+    "displacement": "Engine",
+    "notFilled": "N/A",
+    "description": "Description",
+    "noDescription": "No description",
+    "noCars": "No cars available",
+    "noCarsSub": "Cars will appear here once added by admin",
+    "backToList": "Back to List",
+    "contact": "Contact Us",
+    "wechat": "WeChat",
+    "email": "Email"
+  },
+  "pagination": {
+    "prev": "Previous",
+    "next": "Next"
+  },
+  "footer": {
+    "copyright": "All rights reserved",
+    "contactUs": "Contact Us",
+    "wechat": "WeChat",
+    "email": "Email"
+  },
+  "error": {
+    "404": "Page Not Found",
+    "title": "Error",
+    "unknown": "An unknown error occurred"
+  }
+}

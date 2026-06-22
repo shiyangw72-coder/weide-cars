@@ -1,0 +1,59 @@
+{
+  "siteName": "Weide Auto",
+  "siteSlogan": "中古車ショールーム",
+  "nav": {
+    "home": "ホーム",
+    "admin": "管理画面",
+    "login": "ログイン",
+    "logout": "ログアウト",
+    "adminBadge": "管理者"
+  },
+  "hero": {
+    "title": "厳選中古車",
+    "subtitle": "すべての車両は専門的に検査され、品質が保証されています。在庫を閲覧して、次の愛車を見つけてください。",
+    "searchPlaceholder": "ブランド、モデルを検索...",
+    "searchBtn": "検索"
+  },
+  "filter": {
+    "all": "すべて"
+  },
+  "car": {
+    "forSale": "販売中",
+    "sold": "売約済",
+    "viewDetails": "詳細を見る",
+    "priceNegotiable": "価格応相談",
+    "year": "年",
+    "mileage": "km",
+    "km": "km",
+    "registrationYear": "年式",
+    "odometer": "走行距離",
+    "transmission": "トランスミッション",
+    "fuelType": "燃料タイプ",
+    "color": "ボディカラー",
+    "displacement": "排気量",
+    "notFilled": "未記入",
+    "description": "車両説明",
+    "noDescription": "説明なし",
+    "noCars": "車両がありません",
+    "noCarsSub": "管理者が車両を追加するとここに表示されます",
+    "backToList": "一覧に戻る",
+    "contact": "連絡先",
+    "wechat": "微信",
+    "email": "メール"
+  },
+  "pagination": {
+    "prev": "前へ",
+    "next": "次へ"
+  },
+  "footer": {
+    "copyright": "全著作権所有",
+    "contactUs": "お問い合わせ",
+    "wechat": "微信",
+    "email": "メール"
+  },
+  "error": {
+    "title": "エラー",
+    "404": "ページが見つかりません",
+    "unknown": "不明なエラーが発生しました"
+  }
+}

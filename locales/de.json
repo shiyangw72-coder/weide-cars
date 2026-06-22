@@ -1,0 +1,59 @@
+{
+  "siteName": "Weide Auto",
+  "siteSlogan": "Gebrauchtwagen Showroom",
+  "nav": {
+    "home": "Startseite",
+    "admin": "Admin-Bereich",
+    "login": "Anmelden",
+    "logout": "Abmelden",
+    "adminBadge": "Admin"
+  },
+  "hero": {
+    "title": "Qualitäts-Gebrauchtwagen",
+    "subtitle": "Jedes Fahrzeug wird professionell geprüft und qualitätsgesichert. Durchsuchen Sie unser Inventar, um Ihr nächstes Fahrzeug zu finden.",
+    "searchPlaceholder": "Marke, Modell suchen...",
+    "searchBtn": "Suchen"
+  },
+  "filter": {
+    "all": "Alle"
+  },
+  "car": {
+    "forSale": "Zu Verkaufen",
+    "sold": "Verkauft",
+    "viewDetails": "Details Ansehen",
+    "priceNegotiable": "Preis Verhandelbar",
+    "year": "",
+    "mileage": "km",
+    "km": "km",
+    "registrationYear": "Jahr",
+    "odometer": "Kilometerstand",
+    "transmission": "Getriebe",
+    "fuelType": "Kraftstoff",
+    "color": "Farbe",
+    "displacement": "Hubraum",
+    "notFilled": "N/V",
+    "description": "Beschreibung",
+    "noDescription": "Keine Beschreibung",
+    "noCars": "Keine Fahrzeuge verfügbar",
+    "noCarsSub": "Fahrzeuge erscheinen hier, sobald sie hinzugefügt werden",
+    "backToList": "Zurück zur Liste",
+    "contact": "Kontakt",
+    "wechat": "WeChat",
+    "email": "E-Mail"
+  },
+  "pagination": {
+    "prev": "Zurück",
+    "next": "Weiter"
+  },
+  "footer": {
+    "copyright": "Alle Rechte vorbehalten",
+    "contactUs": "Kontaktieren Sie uns",
+    "wechat": "WeChat",
+    "email": "E-Mail"
+  },
+  "error": {
+    "title": "Fehler",
+    "404": "Seite Nicht Gefunden",
+    "unknown": "Ein unbekannter Fehler ist aufgetreten"
+  }
+}

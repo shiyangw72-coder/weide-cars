@@ -1,0 +1,132 @@
+/* AutoDealer Custom Styles */
+
+body {
+  background-color: #f8f9fa;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+}
+
+/* Car Cards */
+.car-card {
+  transition: transform 0.2s, box-shadow 0.2s;
+  border: none;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.car-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.12) !important;
+}
+
+.car-image-wrapper {
+  position: relative;
+  height: 220px;
+  overflow: hidden;
+  background: #e9ecef;
+}
+
+.car-image-wrapper img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s;
+}
+
+.car-card:hover .car-image-wrapper img {
+  transform: scale(1.05);
+}
+
+.no-image-placeholder {
+  height: 220px;
+}
+
+/* Car Detail */
+.carousel-item img,
+.carousel-item video {
+  background: #000;
+}
+
+/* Admin Tables */
+.table th {
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.table td {
+  vertical-align: middle;
+  font-size: 0.9rem;
+}
+
+/* Badges */
+.badge {
+  font-weight: 500;
+}
+
+/* Footer */
+footer {
+  margin-top: auto;
+}
+
+html, body {
+  height: 100%;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  margin-top: auto;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .car-image-wrapper {
+    height: 180px;
+  }
+  
+  .display-4 {
+    font-size: 2rem;
+  }
+}
+
+/* Loading states */
+.btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
+/* File input styling */
+input[type="file"]::file-selector-button {
+  padding: 0.375rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid #dee2e6;
+  background: #f8f9fa;
+  cursor: pointer;
+}
+
+input[type="file"]::file-selector-button:hover {
+  background: #e9ecef;
+}
+
+/* Breadcrumb */
+.breadcrumb {
+  background: transparent;
+  padding: 0;
+}
+
+/* Hero section */
+.bg-dark .display-4 {
+  line-height: 1.2;
+}
+
+/* Animation */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.car-card {
+  animation: fadeIn 0.3s ease-out;
+}

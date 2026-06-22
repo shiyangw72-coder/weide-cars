@@ -1,0 +1,26 @@
+{
+  "name": "car-dealer",
+  "version": "1.0.0",
+  "description": "二手汽车展示网站 - AutoDealer",
+  "main": "app.js",
+  "scripts": {
+    "start": "node app.js",
+    "dev": "node app.js"
+  },
+  "keywords": [
+    "car",
+    "dealer",
+    "二手车"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bcryptjs": "^3.0.3",
+    "dotenv": "^17.4.2",
+    "ejs": "^6.0.1",
+    "express": "^5.2.1",
+    "express-session": "^1.19.0",
+    "multer": "^2.2.0",
+    "sql.js": "^1.14.1"
+  }
+}

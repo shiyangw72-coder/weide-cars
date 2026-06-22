@@ -1,0 +1,67 @@
+{
+  "siteName": "Weide Auto",
+  "siteSlogan": "Expert en Exportation de Voitures d'Occasion",
+  "nav": {
+    "home": "Accueil",
+    "cars": "Véhicules Disponibles",
+    "export": "Services d'Exportation",
+    "about": "À Propos",
+    "contact": "Contact",
+    "admin": "Panneau Admin",
+    "login": "Connexion",
+    "logout": "Déconnexion",
+    "adminBadge": "Admin"
+  },
+  "hero": {
+    "title": "Expert en Exportation de Voitures d'Occasion",
+    "subtitle": "Au service des marchés mondiaux avec un service B2B complet de l'achat à la livraison portuaire.",
+    "searchPlaceholder": "Rechercher marque, modèle, année...",
+    "searchBtn": "Rechercher",
+    "ctaButton": "✅ Source Directe · Inspection Pro · Expédition Mondiale"
+  },
+  "home": {
+    "newAndUsed": "Véhicules neufs et d'occasion disponibles. Source directe, qualité garantie."
+  },
+  "filter": {
+    "all": "Tout"
+  },
+  "car": {
+    "forSale": "À Vendre",
+    "sold": "Vendu",
+    "viewDetails": "Voir Détails",
+    "priceNegotiable": "Prix à Négocier",
+    "year": "",
+    "mileage": "km",
+    "km": "km",
+    "registrationYear": "Année",
+    "odometer": "Kilométrage",
+    "transmission": "Transmission",
+    "fuelType": "Carburant",
+    "color": "Couleur",
+    "displacement": "Cylindrée",
+    "notFilled": "N/A",
+    "description": "Description",
+    "noDescription": "Pas de description",
+    "noCars": "Aucune voiture disponible",
+    "noCarsSub": "Les voitures apparaîtront ici une fois ajoutées",
+    "backToList": "Retour à la Liste",
+    "contact": "Contact",
+    "wechat": "WeChat",
+    "email": "E-mail"
+  },
+  "pagination": {
+    "prev": "Précédent",
+    "next": "Suivant"
+  },
+  "footer": {
+    "copyright": "Tous droits réservés",
+    "contactUs": "Contactez-nous",
+    "wechat": "WeChat",
+    "email": "E-mail"
+  },
+  "error": {
+    "404": "Page Non Trouvée",
+    "title": "Erreur",
+    "unknown": "Une erreur inconnue s'est produite"
+  }
+}

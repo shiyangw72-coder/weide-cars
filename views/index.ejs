@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="<%= lang %>">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title><%= title %> - <%= t('siteName') %></title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .category-card {
+      transition: all 0.3s ease;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+    .category-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+      border-color: var(--bs-primary);
+    }
+    .category-card.active {
+      border-color: var(--bs-primary);
+      background: linear-gradient(135deg, #0d6efd10, #0d6efd05);
+    }
+    .category-card .cat-icon {
+      font-size: 2.5rem;
+      transition: transform 0.3s ease;
+    }
+    .category-card:hover .cat-icon {
+      transform: scale(1.15);
+    }
+    .category-card .cat-count {
+      position: absolute;
+      top: 8px;
+      right: 8px;
+    }
+  
+  /* ===== Hero Background ===== */
+  .hero-section {
+    background: linear-gradient(135deg, rgba(13, 17, 23, 0.88) 0%, rgba(22, 33, 62, 0.82) 50%, rgba(13, 17, 23, 0.85) 100%),
+                url('https://images.unsplash.com/photo-1494412574643-ff11b0a5c1c3?w=1920&q=80') center/cover no-repeat;
+    position: relative;
+    overflow: hidden;
+    min-height: 520px;
+    display: flex;
+    align-items: center;
+  }
+  .hero-section::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(255,193,7,0.05) 0%, transparent 50%, rgba(0,123,255,0.05) 100%);
+    pointer-events: none;
+  }
+  .hero-section .container { position: relative; z-index: 2; }
+  .hero-section h1 {
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.4);
+    letter-spacing: -0.02em;
+  }
+  .hero-section .lead {
+    opacity: 0.95;
+    text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+  }
+  @media (max-width: 991px) {
+    .hero-section { min-height: auto; padding-top: 2rem; padding-bottom: 2rem; }
+  }
+
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <div class="container">
+      <a class="navbar-brand fw-bold" href="/?lang=<%= lang %>">
+        <i class="bi bi-car-front-fill me-2"></i><%= t('siteName') %>
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/?lang=<%= lang %>"><%= t('nav.home') %></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/?lang=<%= lang %>"><%= t('nav.cars') %></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/export?lang=<%= lang %>"><%= t('nav.export') %></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/about?lang=<%= lang %>"><%= t('nav.about') %></a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/contact?lang=<%= lang %>"><%= t('nav.contact') %></a>
+          </li>
+        </ul>
+        <!-- Language Switcher -->
+        <ul class="navbar-nav me-3">
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+              <%= currentLang.flag %> <%= currentLang.name %>
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end">
+              <li><a class="dropdown-item" href="/?lang=zh">🇨🇳 中文</a></li>
+              <li><a class="dropdown-item" href="/?lang=en">🇬🇧 English</a></li>
+              <li><a class="dropdown-item" href="/?lang=fr">🇫🇷 Français</a></li>
+            </ul>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <% if (user) { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/admin"><i class="bi bi-speedometer2 me-1"></i><%= t('nav.admin') %></a>
+            </li>
+            <li class="nav-item dropdown">
+              <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
+                <i class="bi bi-person-circle me-1"></i><%= user.display_name || user.username %>
+              </a>
+              <ul class="dropdown-menu dropdown-menu-end">
+                <li><a class="dropdown-item" href="/admin"><i class="bi bi-speedometer2 me-2"></i><%= t('nav.admin') %></a></li>
+                <li><hr class="dropdown-divider"></li>
+                <li><a class="dropdown-item text-danger" href="/auth/logout?lang=<%= lang %>"><i class="bi bi-box-arrow-right me-2"></i><%= t('nav.logout') %></a></li>
+              </ul>
+            </li>
+          <% } else { %>
+            <li class="nav-item">
+              <a class="nav-link" href="/auth/login?lang=<%= lang %>"><i class="bi bi-box-arrow-in-right me-1"></i><%= t('nav.login') %></a>
+            </li>
+          <% } %>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Hero with search -->
+  <div class="hero-section text-light py-5">
+    <div class="container">
+      <div class="row align-items-center">
+        <div class="col-lg-7">
+          <h1 class="display-4 fw-bold mb-3"><%= t('hero.title') %></h1>
+          <p class="lead mb-4"><%= t('hero.subtitle') %></p>
+          <!-- 黄色核心按钮 -->
+          <div class="mb-4">
+            <a href="#cars" class="btn btn-warning btn-lg px-4 py-3 fw-bold shadow">
+              <i class="bi bi-check-circle me-2"></i>
+              <%= t('hero.ctaButton') %>
+            </a>
+          </div>
+          <form action="/" method="GET" class="d-flex gap-2">
+            <input type="text" name="search" class="form-control form-control-lg" placeholder="<%= t('hero.searchPlaceholder') %>" value="<%= search || '' %>">
+            <input type="hidden" name="lang" value="<%= lang %>">
+            <% if (selectedCategory) { %>
+            <input type="hidden" name="category" value="<%= selectedCategory %>">
+            <% } %>
+            <button type="submit" class="btn btn-primary btn-lg px-4"><i class="bi bi-search"></i></button>
+          </form>
+        </div>
+        <div class="col-lg-5 text-center d-none d-lg-block">
+          <i class="bi bi-car-front-fill" style="font-size: 12rem; opacity: 0.15;"></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle Category Section -->
+  <div class="bg-light py-4 border-bottom">
+    <div class="container">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h5 class="mb-0 fw-bold"><%= lang === 'zh' ? '车辆分类' : lang === 'en' ? 'Browse by Category' : lang === 'fr' ? 'Par catégorie' : lang === 'de' ? 'Nach Kategorie' : lang === 'ja' ? 'カテゴリで探す' : '카테고리별 탐색' %></h5>
+        <% if (selectedCategory) { %>
+        <a href="/?lang=<%= lang %>" class="btn btn-sm btn-outline-secondary">
+          <i class="bi bi-x-lg me-1"></i><%= lang === 'zh' ? '清除筛选' : lang === 'en' ? 'Clear Filter' : 'Clear' %>
+        </a>
+        <% } %>
+      </div>
+      <div class="row g-3">
+        <!-- SUV -->
+        <div class="col-6 col-md-4 col-lg">
+          <a href="/?category=SUV&lang=<%= lang %>" class="text-decoration-none">
+            <div class="card category-card text-center p-3 position-relative <%= selectedCategory === 'SUV' ? 'active' : '' %>">
+              <div class="cat-icon mb-2">🚙</div>
+              <h6 class="mb-1">SUV</h6>
+              <small class="text-muted"><%= lang === 'zh' ? '越野/SUV' : 'SUV' %></small>
+            </div>
+          </a>
+        </div>
+        <!-- 轿车 -->
+        <div class="col-6 col-md-4 col-lg">
+          <a href="/?category=sedan&lang=<%= lang %>" class="text-decoration-none">
+            <div class="card category-card text-center p-3 position-relative <%= selectedCategory === 'sedan' ? 'active' : '' %>">
+              <div class="cat-icon mb-2">🚗</div>
+              <h6 class="mb-1"><%= lang === 'zh' ? '轿车' : lang === 'en' ? 'Sedan' : lang === 'fr' ? 'Berline' : lang === 'de' ? 'Limousine' : lang === 'ja' ? 'セダン' : '세단' %></h6>
+              <small class="text-muted"><%= lang === 'zh' ? '三厢/两厢' : lang === 'en' ? 'Hatchback/Sedan' : '' %></small>
+            </div>
+          </a>
+        </div>
+        <!-- 卡车 -->
+        <div class="col-6 col-md-4 col-lg">
+          <a href="/?category=truck&lang=<%= lang %>" class="text-decoration-none">
+            <div class="card category-card text-center p-3 position-relative <%= selectedCategory === 'truck' ? 'active' : '' %>">
+              <div class="cat-icon mb-2">🚛</div>
+              <h6 class="mb-1"><%= lang === 'zh' ? '卡车' : lang === 'en' ? 'Truck' : lang === 'fr' ? 'Camion' : lang === 'de' ? 'Lastwagen' : lang === 'ja' ? 'トラック' : '트럭' %></h6>
+              <small class="text-muted"><%= lang === 'zh' ? '皮卡/轻卡' : lang === 'en' ? 'Pickup/Light' : '' %></small>
+            </div>
+          </a>
+        </div>
+        <!-- 货车 -->
+        <div class="col-6 col-md-4 col-lg">
+          <a href="/?category=van&lang=<%= lang %>" class="text-decoration-none">
+            <div class="card category-card text-center p-3 position-relative <%= selectedCategory === 'van' ? 'active' : '' %>">
+              <div class="cat-icon mb-2">🚚</div>
+              <h6 class="mb-1"><%= lang === 'zh' ? '货车' : lang === 'en' ? 'Van/Cargo' : lang === 'fr' ? 'Fourgon' : lang === 'de' ? 'Transporter' : lang === 'ja' ? 'バン' : '밴' %></h6>
+              <small class="text-muted"><%= lang === 'zh' ? '厢式/面包' : lang === 'en' ? 'Cargo/Van' : '' %></small>
+            </div>
+          </a>
+        </div>
+        <!-- 新能源 -->
+        <div class="col-6 col-md-4 col-lg">
+          <a href="/?category=ev&lang=<%= lang %>" class="text-decoration-none">
+            <div class="card category-card text-center p-3 position-relative <%= selectedCategory === 'ev' ? 'active' : '' %>">
+              <div class="cat-icon mb-2">⚡</div>
+              <h6 class="mb-1"><%= lang === 'zh' ? '新能源' : lang === 'en' ? 'EV' : lang === 'fr' ? 'Électrique' : lang === 'de' ? 'Elektro' : lang === 'ja' ? '電気自動車' : '전기차' %></h6>
+              <small class="text-muted"><%= lang === 'zh' ? '纯电/混动' : lang === 'en' ? 'Electric/Hybrid' : '' %></small>
+            </div>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Car Listings -->
+  <div class="container py-4">
+    <% if (brands && brands.length > 0) { %>
+    <div class="mb-4">
+      <div class="d-flex flex-wrap gap-2">
+        <a href="/?lang=<%= lang %><%= selectedCategory ? '&category=' + selectedCategory : '' %>" class="btn btn-<%= selectedBrand ? 'outline' : '' %>primary btn-sm"><%= t('filter.all') %></a>
+        <% brands.forEach(function(b) { %>
+          <a href="/?brand=<%= encodeURIComponent(b) %>&lang=<%= lang %><%= selectedCategory ? '&category=' + selectedCategory : '' %>" class="btn btn-<%= selectedBrand === b ? '' : 'outline-' %>secondary btn-sm"><%= b %></a>
+        <% }); %>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="row g-4">
+      <% if (cars && cars.length > 0) { %>
+        <% cars.forEach(function(car) { %>
+        <div class="col-12 col-md-6 col-lg-4">
+          <div class="card car-card h-100 shadow-sm">
+            <div class="car-image-wrapper" style="height: 200px; overflow: hidden;">
+              <% if (car.cover_image) { %>
+                <img src="<%= car.cover_image %>" class="card-img-top" alt="<%= car.brand %> <%= car.model %>" style="height: 200px; object-fit: cover;">
+              <% } else { %>
+                <div class="no-image-placeholder d-flex align-items-center justify-content-center bg-light" style="height: 200px;">
+                  <i class="bi bi-car-front text-muted" style="font-size: 4rem;"></i>
+                </div>
+              <% } %>
+              <span class="badge bg-success position-absolute top-0 end-0 m-2"><%= t('car.forSale') %></span>
+              <% if (car.category) { %>
+              <span class="badge bg-info position-absolute top-0 start-0 m-2">
+                <% if (car.category === 'SUV') { %>🚙 SUV<% } else if (car.category === 'sedan') { %>🚗 <%= lang === 'zh' ? '轿车' : 'Sedan' %><% } else if (car.category === 'truck') { %>🚛 <%= lang === 'zh' ? '卡车' : 'Truck' %><% } else if (car.category === 'van') { %>🚚 <%= lang === 'zh' ? '货车' : 'Van' %><% } else if (car.category === 'ev') { %>⚡ <%= lang === 'zh' ? '新能源' : 'EV' %><% } else { %><%= car.category %><% } %>
+              </span>
+              <% } %>
+            </div>
+            <div class="card-body">
+              <h5 class="card-title mb-1"><%= car.brand %> <%= car.model %></h5>
+              <p class="text-muted small mb-2">
+                <%= car.year ? car.year + t('car.year') + ' · ' : '' %><%= car.mileage ? Number(car.mileage).toLocaleString() + t('car.mileage') : '' %> · <%= car.displacement || '-' %>
+              </p>
+              <p class="card-text text-truncate"><%= car.description ? car.description.substring(0, 80) : t('car.noDescription') %></p>
+            </div>
+            <div class="card-footer bg-white border-top-0 d-flex justify-content-between align-items-center">
+              <span class="fs-5 fw-bold text-danger"><%= car.price ? '$ ' + Number(car.price).toLocaleString() : t('car.priceNegotiable') %></span>
+              <a href="/car/<%= car.id %>?lang=<%= lang %>" class="btn btn-outline-primary btn-sm"><%= t('car.viewDetails') %></a>
+            </div>
+          </div>
+        </div>
+        <% }); %>
+      <% } else { %>
+        <div class="col-12 text-center py-5">
+          <i class="bi bi-emoji-frown text-muted" style="font-size: 4rem;"></i>
+          <h4 class="mt-3 text-muted"><%= t('car.noCars') %></h4>
+        </div>
+      <% } %>
+    </div>
+  </div>
+
+  <footer class="bg-dark text-light py-4 mt-5">
+    <div class="container">
+      <div class="row g-4">
+        <div class="col-md-5">
+          <p class="mb-1"><i class="bi bi-car-front-fill me-2"></i><%= t('siteName') %> - <%= t('siteSlogan') %></p>
+          <p class="text-muted small mb-0">&copy; 2026 <%= t('siteName') %>. <%= t('footer.copyright') %>.</p>
+        </div>
+        <% if ((siteContacts && (siteContacts.contact_wechat || siteContacts.contact_whatsapp || siteContacts.contact_email))) { %>
+        <div class="col-md-7">
+          <h6 class="text-white mb-2"><i class="bi bi-telephone me-2"></i><%= t('footer.contactUs') || '联系我们' %></h6>
+          <div class="d-flex flex-wrap gap-3">
+            <% if (siteContacts.contact_wechat) { %>
+            <span class="badge bg-success fs-6 px-3 py-2"><i class="bi bi-wechat me-1"></i><%= t('footer.wechat') || '微信' %>: <%= siteContacts.contact_wechat %></span>
+            <% } %>
+            <% if (siteContacts.contact_whatsapp) { %>
+            <a href="https://wa.me/<%= siteContacts.contact_whatsapp.replace(/[^0-9]/g, '') %>" target="_blank" class="badge bg-success fs-6 px-3 py-2 text-decoration-none">
+              <i class="bi bi-whatsapp me-1"></i>WhatsApp: <%= siteContacts.contact_whatsapp %>
+            </a>
+            <% } %>
+            <% if (siteContacts.contact_email) { %>
+            <span class="badge bg-dark fs-6 px-3 py-2"><i class="bi bi-envelope me-1"></i><%= t('footer.email') || '邮箱' %>: <%= siteContacts.contact_email %></span>
+            <% } %>
+          </div>
+        </div>
+        <% } %>
+      </div>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="/js/main.js"></script>
+  
+  <!-- Floating WhatsApp Button -->
+  <% if (siteContacts && siteContacts.contact_whatsapp) { %>
+  <a href="https://wa.me/<%= siteContacts.contact_whatsapp.replace(/[^0-9]/g, '') %>" target="_blank" 
+     class="btn btn-success rounded-circle shadow-lg d-flex align-items-center justify-content-center"
+     style="position: fixed; bottom: 30px; right: 30px; width: 60px; height: 60px; z-index: 1000; font-size: 1.8rem;"
+     title="Contact on WhatsApp">
+    <i class="bi bi-whatsapp"></i>
+  </a>
+  <% } %>
+</body>
+</html>
