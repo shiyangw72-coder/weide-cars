@@ -157,13 +157,10 @@ function validateMediaCounts(images, videos, existingImages, existingVideos, isC
   const totalImages = (existingImages || 0) + images.length;
   const totalVideos = (existingVideos || 0) + videos.length;
   const isEnglish = req.t('nav.admin') === 'Admin Panel';
-  if (isCreate) {
-    if (images.length < 9) return isEnglish ? 'Please upload 9 images' : '请上传 9 张图片';
-    if (images.length > 9) return isEnglish ? 'Maximum 9 images allowed' : '最多上传 9 张图片';
-    if (videos.length !== 1) return isEnglish ? 'Please upload 1 video' : '请上传 1 个视频';
-  } else {
-    if (totalImages > 9) return isEnglish ? 'Maximum 9 images total' : '图片总数不能超过 9 张';
-    if (totalVideos > 1) return isEnglish ? 'Maximum 1 video total' : '视频总数不能超过 1 个';
+  if (totalImages > 9) return isEnglish ? 'Maximum 9 images total' : '图片总数不能超过 9 张';
+  if (totalVideos > 1) return isEnglish ? 'Maximum 1 video total' : '视频总数不能超过 1 个';
+  if (isCreate && images.length === 0 && videos.length === 0) {
+    return isEnglish ? 'Please upload at least one image or video' : '请至少上传一张图片或视频';
   }
   return null;
 }
