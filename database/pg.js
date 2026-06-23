@@ -3,8 +3,15 @@ const fs = require('fs');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+  console.error('❌ 错误: DATABASE_URL 环境变量未设置');
+  console.error('请在 Render Dashboard → Environment 中添加 DATABASE_URL');
+  process.exit(1);
+}
+
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
   ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false
 });
 
