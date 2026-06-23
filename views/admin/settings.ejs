@@ -71,7 +71,7 @@
                 : '全局联系方式会显示在首页底部和各车辆详情页。在添加/编辑车源时，也可以为单个车源单独设置联系方式（优先显示单车辆联系方式）。' %>
             </p>
 
-            <form method="POST" action="/admin/settings">
+            <form method="POST" action="/admin/settings" enctype="multipart/form-data">
               <input type="hidden" name="lang" value="<%= lang %>">
 
               <h5 class="mb-3"><i class="bi bi-globe me-2"></i><%= t('nav.admin') === 'Admin Panel' ? 'Global Contact Information' : '全局联系方式' %></h5>
@@ -115,7 +115,7 @@
                 <div class="col-md-4">
                   <% if (settings.wechat_qr_image) { %>
                   <div class="text-center">
-                    <img src="data:image/png;base64,<%= settings.wechat_qr_image %>" alt="WeChat QR" class="rounded" style="max-width: 160px; max-height: 160px; border: 2px solid #dee2e6;">
+                    <img src="data:image/png;base64,<%- settings.wechat_qr_image %>" alt="WeChat QR" class="rounded" style="max-width: 160px; max-height: 160px; border: 2px solid #dee2e6;">
                     <div class="small text-muted mt-1">当前二维码</div>
                   </div>
                   <% } else { %>

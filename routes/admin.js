@@ -4,6 +4,7 @@ const multer = require('multer');
 const path = require('path');
 const bcrypt = require('bcryptjs');
 const https = require('https');
+const sharp = require('sharp');
 const { requireAuth, requireAdmin } = require('../middleware/auth');
 
 // Translate text via DeepL API (fallback to MyMemory free API if DeepL fails)
@@ -903,10 +904,22 @@ module.exports = function(db, saveDb) {
         if (!allowedTypes.includes(req.file.mimetype)) {
           return res.redirect('/admin/settings?error=' + encodeURIComponent('仅支持 JPG/PNG/GIF/WebP 格式图片'));
         }
-        if (req.file.size > 5 * 1024 * 1024) {
-          return res.redirect('/admin/settings?error=' + encodeURIComponent('图片太大，最大支持 5MB'));
+        try {
+          // Resize to max 300x300, convert to PNG, compress for base64 storage
+          const processed = await sharp(req.file.buffer)
+            .resize(300, 300, { fit: 'inside', withoutEnlargement: true })
+            .png({ quality: 80 })
+            .toBuffer();
+          qrBase64 = processed.toString('base64');
+          console.log(`QR image processed: ${req.file.size} bytes -> ${processed.length} bytes (base64: ${qrBase64.length})`);
+        } catch (imgErr) {
+          console.error('QR image processing error:', imgErr.message);
+          // Fallback: store original if sharp fails
+          if (req.file.size > 2 * 1024 * 1024) {
+            return res.redirect('/admin/settings?error=' + encodeURIComponent('图片太大，请上传小于2MB的图片'));
+          }
+          qrBase64 = req.file.buffer.toString('base64');
         }
-        qrBase64 = req.file.buffer.toString('base64');
       }
 
       // Build UPDATE query dynamically - only update QR if new file uploaded
