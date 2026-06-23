@@ -77,23 +77,58 @@
               <h5 class="mb-3"><i class="bi bi-globe me-2"></i><%= t('nav.admin') === 'Admin Panel' ? 'Global Contact Information' : '全局联系方式' %></h5>
 
               <div class="row g-3 mb-4">
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label">
-                    <i class="bi bi-wechat me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'WeChat' : '微信' %>
+                    <i class="bi bi-wechat me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'WeChat ID' : '微信号' %>
                   </label>
                   <input type="text" name="contact_wechat" class="form-control" value="<%= settings.contact_wechat || '' %>" placeholder="<%= t('nav.admin') === 'Admin Panel' ? 'WeChat ID' : '微信号' %>">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label">
                     <i class="bi bi-whatsapp me-1"></i>WhatsApp
                   </label>
                   <input type="text" name="contact_whatsapp" class="form-control" value="<%= settings.contact_whatsapp || '' %>" placeholder="+86 138 xxxx xxxx">
                 </div>
-                <div class="col-md-4">
+                <div class="col-md-6">
                   <label class="form-label">
                     <i class="bi bi-envelope me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Email' : '邮箱' %>
                   </label>
                   <input type="email" name="contact_email" class="form-control" value="<%= settings.contact_email || '' %>" placeholder="example@mail.com">
+                </div>
+                <div class="col-md-6">
+                  <label class="form-label">
+                    <i class="bi bi-telephone me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Phone' : '电话' %>
+                  </label>
+                  <input type="text" name="contact_phone" class="form-control" value="<%= settings.contact_phone || '' %>" placeholder="+86 138 xxxx xxxx">
+                </div>
+                <div class="col-12">
+                  <label class="form-label">
+                    <i class="bi bi-geo-alt me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Address' : '公司地址' %>
+                  </label>
+                  <input type="text" name="contact_address" class="form-control" value="<%= settings.contact_address || '' %>" placeholder="<%= t('nav.admin') === 'Admin Panel' ? 'Company address' : '填写公司/门店地址' %>">
+                </div>
+              </div>
+
+              <hr>
+              <h6 class="mb-3"><i class="bi bi-qr-code me-2"></i><%= t('nav.admin') === 'Admin Panel' ? 'WeChat QR Code' : '微信二维码图片' %></h6>
+              <div class="row g-3 align-items-center mb-4">
+                <div class="col-md-4">
+                  <% if (settings.wechat_qr_image) { %>
+                  <div class="text-center">
+                    <img src="data:image/png;base64,<%= settings.wechat_qr_image %>" alt="WeChat QR" class="rounded" style="max-width: 160px; max-height: 160px; border: 2px solid #dee2e6;">
+                    <div class="small text-muted mt-1">当前二维码</div>
+                  </div>
+                  <% } else { %>
+                  <div class="text-center text-muted border rounded py-4" style="max-width: 160px;">
+                    <i class="bi bi-image" style="font-size: 2rem;"></i>
+                    <div class="small mt-1">暂无二维码</div>
+                  </div>
+                  <% } %>
+                </div>
+                <div class="col-md-8">
+                  <label class="form-label"><%= t('nav.admin') === 'Admin Panel' ? 'Upload QR Code (JPG/PNG, max 5MB)' : '上传微信二维码（JPG/PNG，最大5MB）' %></label>
+                  <input type="file" name="wechat_qr_image" class="form-control" accept="image/jpeg,image/png,image/gif,image/webp">
+                  <div class="form-text"><%= t('nav.admin') === 'Admin Panel' ? 'Leave empty to keep current QR code' : '不选择则保留当前二维码' %></div>
                 </div>
               </div>
 

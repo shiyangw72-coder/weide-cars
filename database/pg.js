@@ -106,10 +106,11 @@ async function initDatabase() {
     )
   `);
 
-  // Migration: add contact_phone and contact_address if missing
+  // Migration: add contact_phone, contact_address, wechat_qr_image if missing
   try {
     await query("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS contact_phone TEXT DEFAULT ''");
     await query("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS contact_address TEXT DEFAULT ''");
+    await query("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS wechat_qr_image TEXT DEFAULT ''");
   } catch(e) {
     console.log('site_settings migration skipped:', e.message);
   }

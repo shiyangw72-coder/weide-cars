@@ -852,12 +852,15 @@ module.exports = function(db, saveDb) {
     }
   });
 
+  // QR code image upload for settings - use memory storage (same as car images)
+  const qrUpload = upload.single('wechat_qr_image');
+
   // Global settings
   router.get('/settings', requireAdmin, async (req, res) => {
     try {
       let settings = await db.queryOne("SELECT * FROM site_settings WHERE id = 1");
       if (!settings) {
-        settings = { id: 1, contact_wechat: '', contact_whatsapp: '', contact_email: '' };
+        settings = { id: 1, contact_wechat: '', contact_whatsapp: '', contact_email: '', contact_phone: '', contact_address: '', wechat_qr_image: '' };
       }
       res.render('admin/settings', {
         title: '网站设置',
@@ -880,18 +883,58 @@ module.exports = function(db, saveDb) {
     }
   });
 
-  router.post('/settings', requireAdmin, async (req, res) => {
-    const { contact_wechat, contact_whatsapp, contact_email } = req.body;
+  router.post('/settings', requireAdmin, (req, res, next) => {
+    qrUpload(req, res, async (err) => {
+      if (err) {
+        if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+          return res.redirect('/admin/settings?error=' + encodeURIComponent('图片太大，最大支持 5MB'));
+        }
+        console.error('QR upload error:', err);
+        return res.redirect('/admin/settings?error=' + encodeURIComponent('图片上传失败'));
+      }
+      next();
+    });
+  }, async (req, res) => {
+    const { contact_wechat, contact_whatsapp, contact_email, contact_phone, contact_address } = req.body;
     try {
-      await db.execute(
-        `UPDATE site_settings SET contact_wechat=$1, contact_whatsapp=$2, contact_email=$3, updated_by=$4, updated_at=CURRENT_TIMESTAMP WHERE id=1`,
-        [
+      let qrBase64 = null;
+      if (req.file) {
+        const allowedTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp'];
+        if (!allowedTypes.includes(req.file.mimetype)) {
+          return res.redirect('/admin/settings?error=' + encodeURIComponent('仅支持 JPG/PNG/GIF/WebP 格式图片'));
+        }
+        if (req.file.size > 5 * 1024 * 1024) {
+          return res.redirect('/admin/settings?error=' + encodeURIComponent('图片太大，最大支持 5MB'));
+        }
+        qrBase64 = req.file.buffer.toString('base64');
+      }
+
+      // Build UPDATE query dynamically - only update QR if new file uploaded
+      let sql, params;
+      if (qrBase64) {
+        sql = `UPDATE site_settings SET contact_wechat=$1, contact_whatsapp=$2, contact_email=$3, contact_phone=$4, contact_address=$5, wechat_qr_image=$6, updated_by=$7, updated_at=CURRENT_TIMESTAMP WHERE id=1`;
+        params = [
           (contact_wechat || '').trim(),
           (contact_whatsapp || '').trim(),
           (contact_email || '').trim(),
+          (contact_phone || '').trim(),
+          (contact_address || '').trim(),
+          qrBase64,
           req.session.user.id
-        ]
-      );
+        ];
+      } else {
+        sql = `UPDATE site_settings SET contact_wechat=$1, contact_whatsapp=$2, contact_email=$3, contact_phone=$4, contact_address=$5, updated_by=$6, updated_at=CURRENT_TIMESTAMP WHERE id=1`;
+        params = [
+          (contact_wechat || '').trim(),
+          (contact_whatsapp || '').trim(),
+          (contact_email || '').trim(),
+          (contact_phone || '').trim(),
+          (contact_address || '').trim(),
+          req.session.user.id
+        ];
+      }
+
+      await db.execute(sql, params);
       const savedMsg = req.t && req.t('nav.admin') === 'Admin Panel' ? 'Settings saved successfully' : '设置已保存';
       res.redirect('/admin/settings?success=' + encodeURIComponent(savedMsg));
     } catch (err) {

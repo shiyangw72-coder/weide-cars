@@ -133,7 +133,11 @@
             <h5 class="mb-3"><%= t('contact.wechat') %></h5>
             <p class="text-muted mb-3"><%= t('contact.wechatTip') %></p>
             <div class="wechat-qr-box">
+              <% if (siteContacts.wechat_qr_image) { %>
+              <img src="data:image/png;base64,<%= siteContacts.wechat_qr_image %>" alt="WeChat QR" class="rounded mb-2" style="max-width: 140px; max-height: 140px; object-fit: contain;">
+              <% } else { %>
               <i class="bi bi-qr-code d-block mb-2"></i>
+              <% } %>
               <strong class="d-block mb-1"><%= siteContacts.contact_wechat %></strong>
               <small class="text-muted"><%= t('contact.scanToAdd') %></small>
             </div>
