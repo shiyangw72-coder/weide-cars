@@ -262,6 +262,8 @@ router.get('/', async (req, res) => {
       currentLang: res.locals.currentLang,
       urlWithLang: res.locals.urlWithLang
     });
+  });
+
   // About Us page
   router.get('/about', async (req, res) => {
     let siteContacts = { contact_wechat: '', contact_whatsapp: '', contact_email: '', contact_phone: '', contact_address: '' };
