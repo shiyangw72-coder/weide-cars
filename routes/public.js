@@ -262,6 +262,25 @@ router.get('/', async (req, res) => {
       currentLang: res.locals.currentLang,
       urlWithLang: res.locals.urlWithLang
     });
+  // About Us page
+  router.get('/about', async (req, res) => {
+    let siteContacts = { contact_wechat: '', contact_whatsapp: '', contact_email: '', contact_phone: '', contact_address: '' };
+    try {
+      const settings = await db.queryOne("SELECT * FROM site_settings WHERE id = 1");
+      if (settings) siteContacts = settings;
+    } catch (e) {}
+
+    res.render('about', {
+      title: req.t('nav.about'),
+      siteContacts,
+      siteName: req.t('siteName'),
+      user: req.session.user || null,
+      lang: req.lang,
+      t: req.t,
+      languages: res.locals.languages,
+      currentLang: res.locals.currentLang,
+      urlWithLang: res.locals.urlWithLang
+    });
   });
 
   return router;
