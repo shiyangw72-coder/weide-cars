@@ -79,6 +79,26 @@ async function start() {
     app.use('/auth', authRoutes);
     app.use('/admin', adminRoutes);
 
+    // Direct about route (backup in case public.js route has issues)
+    app.get('/about', async (req, res) => {
+      let siteContacts = { contact_wechat: '', contact_whatsapp: '', contact_email: '', contact_phone: '', contact_address: '' };
+      try {
+        const settings = await db.queryOne("SELECT * FROM site_settings WHERE id = 1");
+        if (settings) siteContacts = settings;
+      } catch (e) {}
+      res.render('about', {
+        title: req.t ? req.t('nav.about') : '关于我们',
+        siteContacts,
+        siteName: req.t ? req.t('siteName') : '伟德车行',
+        user: req.session.user || null,
+        lang: req.lang || 'zh',
+        t: req.t || function(k) { return k; },
+        languages: res.locals.languages || [],
+        currentLang: res.locals.currentLang || { flag: '🇨🇳', name: '中文' },
+        urlWithLang: res.locals.urlWithLang || function(u) { return u; }
+      });
+    });
+
     // Error page route
     app.get('/error', (req, res) => {
       res.render('error', {
