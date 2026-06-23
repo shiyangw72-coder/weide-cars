@@ -59,6 +59,25 @@
     "wechat": "WeChat",
     "email": "E-mail"
   },
+  "contact": {
+    "pageTitle": "Contactez-nous",
+    "subtitle": "N'hésitez pas à nous contacter pour toute question ou partenariat",
+    "wechat": "WeChat",
+    "wechatTip": "Scanner le code QR ou rechercher l'ID WeChat",
+    "scanToAdd": "Scanner pour ajouter",
+    "whatsapp": "WhatsApp",
+    "whatsappTip": "Préféré pour les clients internationaux",
+    "openWhatsapp": "Ouvrir WhatsApp",
+    "email": "E-mail",
+    "emailTip": "Demandes commerciales ou devis",
+    "phone": "Téléphone",
+    "phoneTip": "Lun-Sam 9:00 - 18:00",
+    "address": "Adresse",
+    "addressTip": "Venez nous rendre visite",
+    "noContact": "Aucune information de contact disponible",
+    "noContactTip": "Veuillez contacter l'administrateur pour ajouter des coordonnées",
+    "businessHours": "Heures d'ouverture : Lun-Sam  9:00 - 18:00 (Heure de Beijing)"
+  },
   "error": {
     "404": "Page Non Trouvée",
     "title": "Erreur",

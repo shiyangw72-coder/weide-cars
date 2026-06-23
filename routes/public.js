@@ -241,5 +241,33 @@ router.get('/', async (req, res) => {
     }
   });
 
+  // Contact page
+  router.get('/contact', async (req, res) => {
+    let siteContacts = { contact_wechat: '', contact_whatsapp: '', contact_email: '', contact_phone: '', contact_address: '' };
+    let siteName = '';
+    let siteSlogan = '';
+    try {
+      const settings = await db.queryOne("SELECT * FROM site_settings WHERE id = 1");
+      if (settings) {
+        siteContacts = settings;
+      }
+    } catch (e) {}
+    try {
+      const rows = await db.query("SELECT value FROM site_settings WHERE id = 1");
+    } catch (e) {}
+
+    res.render('contact', {
+      title: req.t('nav.contact'),
+      siteContacts,
+      siteName: req.t('siteName'),
+      user: req.session.user || null,
+      lang: req.lang,
+      t: req.t,
+      languages: res.locals.languages,
+      currentLang: res.locals.currentLang,
+      urlWithLang: res.locals.urlWithLang
+    });
+  });
+
   return router;
 };

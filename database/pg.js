@@ -99,10 +99,20 @@ async function initDatabase() {
       contact_wechat TEXT DEFAULT '',
       contact_whatsapp TEXT DEFAULT '',
       contact_email TEXT DEFAULT '',
+      contact_phone TEXT DEFAULT '',
+      contact_address TEXT DEFAULT '',
       updated_by INTEGER REFERENCES users(id),
       updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     )
   `);
+
+  // Migration: add contact_phone and contact_address if missing
+  try {
+    await query("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS contact_phone TEXT DEFAULT ''");
+    await query("ALTER TABLE site_settings ADD COLUMN IF NOT EXISTS contact_address TEXT DEFAULT ''");
+  } catch(e) {
+    console.log('site_settings migration skipped:', e.message);
+  }
 
   // Insert default site settings if not exists
   const settings = await queryOne("SELECT id FROM site_settings WHERE id = 1");

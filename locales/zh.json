@@ -59,6 +59,25 @@
     "wechat": "微信",
     "email": "邮箱"
   },
+  "contact": {
+    "pageTitle": "联系我们",
+    "subtitle": "有任何疑问或合作意向，欢迎随时联系我们",
+    "wechat": "微信咨询",
+    "wechatTip": "扫描二维码或搜索微信号",
+    "scanToAdd": "长按识别二维码添加",
+    "whatsapp": "WhatsApp",
+    "whatsappTip": "国际客户首选，快速响应",
+    "openWhatsapp": "打开 WhatsApp",
+    "email": "电子邮件",
+    "emailTip": "商务合作或发送询价",
+    "phone": "电话热线",
+    "phoneTip": "工作日 9:00 - 18:00",
+    "address": "公司地址",
+    "addressTip": "欢迎实地看车",
+    "noContact": "暂无联系方式",
+    "noContactTip": "请联系管理员添加联系方式",
+    "businessHours": "营业时间：周一至周六  9:00 - 18:00（北京时间）"
+  },
   "error": {
     "404": "页面不存在",
     "title": "错误",
