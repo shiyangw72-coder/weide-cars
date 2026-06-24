@@ -21,23 +21,23 @@
       <div class="collapse navbar-collapse" id="adminNav">
         <ul class="navbar-nav me-auto">
           <li class="nav-item">
-            <a class="nav-link active" href="/admin"><i class="bi bi-speedometer2 me-1"></i><%= t('nav.admin') %></a>
+            <a class="nav-link active" href="/admin?lang=<%= lang %>"><i class="bi bi-speedometer2 me-1"></i><%= t('nav.admin') %></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/admin/cars"><i class="bi bi-car-front me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Cars' : '车辆管理' %></a>
+            <a class="nav-link" href="/admin/cars?lang=<%= lang %>"><i class="bi bi-car-front me-1"></i><%= t('admin.cars') %></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/admin/cars/create"><i class="bi bi-plus-circle me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Add Car' : '添加车辆' %></a>
+            <a class="nav-link" href="/admin/cars/create?lang=<%= lang %>"><i class="bi bi-plus-circle me-1"></i><%= t('admin.addCar') %></a>
           </li>
           <% if (user && user.role === 'admin') { %>
           <li class="nav-item">
-            <a class="nav-link" href="/admin/review"><i class="bi bi-check-circle me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Review' : '审核' %></a>
+            <a class="nav-link" href="/admin/review?lang=<%= lang %>"><i class="bi bi-check-circle me-1"></i><%= t('admin.review') %></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/admin/settings"><i class="bi bi-gear me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Settings' : '网站设置' %></a>
+            <a class="nav-link" href="/admin/settings?lang=<%= lang %>"><i class="bi bi-gear me-1"></i><%= t('admin.settings') %></a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" href="/admin/users"><i class="bi bi-people me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Users' : '用户管理' %></a>
+            <a class="nav-link" href="/admin/users?lang=<%= lang %>"><i class="bi bi-people me-1"></i><%= t('admin.users') %></a>
           </li>
           <% } %>
         </ul>
@@ -66,7 +66,7 @@
         <div class="card border-primary shadow-sm">
           <div class="card-body text-center py-4">
             <i class="bi bi-car-front text-primary" style="font-size: 2.5rem;"></i>
-            <h5 class="mt-2"><%= t('nav.admin') === 'Admin Panel' ? 'Total Cars' : '车辆总数' %></h5>
+            <h5 class="mt-2"><%= t('admin.totalCars') %></h5>
             <h2 class="text-primary fw-bold"><%= totalCars %></h2>
           </div>
         </div>
@@ -75,7 +75,7 @@
         <div class="card border-success shadow-sm">
           <div class="card-body text-center py-4">
             <i class="bi bi-check-circle text-success" style="font-size: 2.5rem;"></i>
-            <h5 class="mt-2"><%= t('nav.admin') === 'Admin Panel' ? 'Active Listings' : '在售车辆' %></h5>
+            <h5 class="mt-2"><%= t('admin.activeListings') %></h5>
             <h2 class="text-success fw-bold"><%= activeCars %></h2>
           </div>
         </div>
@@ -85,7 +85,7 @@
         <div class="card border-info shadow-sm">
           <div class="card-body text-center py-4">
             <i class="bi bi-people text-info" style="font-size: 2.5rem;"></i>
-            <h5 class="mt-2"><%= t('nav.admin') === 'Admin Panel' ? 'Users' : '用户' %></h5>
+            <h5 class="mt-2"><%= t('admin.usersCount') %></h5>
             <h2 class="text-info fw-bold"><%= totalUsers %></h2>
           </div>
         </div>
@@ -94,7 +94,7 @@
         <div class="card border-warning shadow-sm">
           <div class="card-body text-center py-4">
             <i class="bi bi-clock-history text-warning" style="font-size: 2.5rem;"></i>
-            <h5 class="mt-2"><%= t('nav.admin') === 'Admin Panel' ? 'Pending Review' : '待审核' %></h5>
+            <h5 class="mt-2"><%= t('admin.pendingReview') %></h5>
             <h2 class="text-warning fw-bold"><%= pendingCars %></h2>
           </div>
         </div>
@@ -107,9 +107,9 @@
         <div class="card shadow-sm">
           <div class="card-body text-center py-5">
             <i class="bi bi-plus-circle text-primary" style="font-size: 3rem;"></i>
-            <h5 class="mt-3"><%= t('nav.admin') === 'Admin Panel' ? 'Add New Car' : '添加新车' %></h5>
-            <a href="/admin/cars/create" class="btn btn-primary mt-2">
-              <i class="bi bi-plus-lg me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Create' : '创建' %>
+            <h5 class="mt-3"><%= t('admin.addNewCar') %></h5>
+            <a href="/admin/cars/create?lang=<%= lang %>" class="btn btn-primary mt-2">
+              <i class="bi bi-plus-lg me-1"></i><%= t('admin.create') %>
             </a>
           </div>
         </div>
@@ -118,9 +118,9 @@
         <div class="card shadow-sm">
           <div class="card-body text-center py-5">
             <i class="bi bi-check-circle text-success" style="font-size: 3rem;"></i>
-            <h5 class="mt-3"><%= t('nav.admin') === 'Admin Panel' ? 'Review Cars' : '审核车辆' %></h5>
-            <a href="/admin/review" class="btn btn-warning mt-2">
-              <i class="bi bi-clock-history me-1"></i><%= t('nav.admin') === 'Admin Panel' ? 'Review' : '去审核' %>
+            <h5 class="mt-3"><%= t('admin.reviewCars') %></h5>
+            <a href="/admin/review?lang=<%= lang %>" class="btn btn-warning mt-2">
+              <i class="bi bi-clock-history me-1"></i><%= t('admin.goReview') %>
             </a>
           </div>
         </div>
